@@ -183,6 +183,21 @@ MONGO_URI=mongodb://127.0.0.1:27017/daynote
 
 Mongoose creates the collections and indexes on first use — there is nothing to set up by hand.
 
+### Option C — quick local dev, no install
+
+If you don't want to install MongoDB or set up Atlas right now, run:
+
+```bash
+cd backend
+npm run mongo
+```
+
+This starts a real, local MongoDB server on `127.0.0.1:27017` (matching `.env.example`) with data
+stored persistently in `backend/.mongodb-data`, so nothing is lost between restarts. It downloads
+the official MongoDB binary once (cached afterwards) and needs no admin rights or system service.
+Leave it running in its own terminal, then start the API as usual. This is a convenience for local
+development only — use Option A (Atlas) for anything deployed.
+
 ---
 
 ## Cloudinary setup (optional)
