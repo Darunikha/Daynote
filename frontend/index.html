@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/leaf.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Daynote - a little space for your thoughts. A quiet journal to write, reflect and remember."
+    />
+    <meta name="theme-color" content="#F7F8F2" />
+    <title>Daynote — A little space for your thoughts</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=Caveat:wght@500;600&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      // Apply the saved theme before paint so there is no flash of the wrong theme.
+      (function () {
+        try {
+          var t = localStorage.getItem('daynote-theme');
+          if (t === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
