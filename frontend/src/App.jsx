@@ -10,6 +10,8 @@ import ProtectedRoute, { PublicOnlyRoute } from './components/ProtectedRoute';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import MyJournal from './pages/MyJournal';
 import JournalEditor from './pages/JournalEditor';
@@ -48,6 +50,22 @@ export default function App() {
               element={
                 <PublicOnlyRoute>
                   <Register />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <PublicOnlyRoute>
+                  <ForgotPassword />
+                </PublicOnlyRoute>
+              }
+            />
+            <Route
+              path="/reset-password/:token"
+              element={
+                <PublicOnlyRoute>
+                  <ResetPassword />
                 </PublicOnlyRoute>
               }
             />

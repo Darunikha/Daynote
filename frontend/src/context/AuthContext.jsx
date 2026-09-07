@@ -60,6 +60,27 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const forgotPassword = useCallback(async (payload) => {
+    try {
+      const res = await authService.forgotPassword(payload);
+      return { success: true, message: res.message, data: res.data };
+    } catch (error) {
+      return { success: false, message: getErrorMessage(error) };
+    }
+  }, []);
+
+  // A successful reset returns a fresh token, so this signs the user in the
+  // same way login/register do - no separate trip to the login page needed.
+  const resetPassword = useCallback(async (token, payload) => {
+    try {
+      const res = await authService.resetPassword(token, payload);
+      persist(res);
+      return { success: true, message: res.message };
+    } catch (error) {
+      return { success: false, message: getErrorMessage(error) };
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -67,10 +88,12 @@ export const AuthProvider = ({ children }) => {
       isAuthenticated: Boolean(user),
       login,
       register,
+      forgotPassword,
+      resetPassword,
       logout: signOutLocally,
       updateUser: (patch) => setUser((u) => ({ ...u, ...patch })),
     }),
-    [user, loading, login, register, signOutLocally]
+    [user, loading, login, register, forgotPassword, resetPassword, signOutLocally]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

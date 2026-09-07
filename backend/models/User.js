@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema(
     bio: { type: String, default: '', maxlength: 160, trim: true },
     avatarUrl: { type: String, default: '' },
     theme: { type: String, enum: ['light', 'dark'], default: 'light' },
+    // Forgot-password flow: a hashed, time-limited token. Never the raw
+    // token itself, and never returned by default queries.
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );

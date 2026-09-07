@@ -97,9 +97,18 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="label">
-                Password
-              </label>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label htmlFor="password" className="label !mb-0">
+                  Password
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-medium underline-offset-4 hover:underline"
+                  style={{ color: 'rgb(var(--brandy))' }}
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock
                   size={15}
