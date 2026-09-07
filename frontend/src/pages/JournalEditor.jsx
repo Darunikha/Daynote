@@ -237,6 +237,8 @@ export default function JournalEditor() {
 
           <p className="muted mt-3 text-right text-xs tabular-nums">
             {form.content.trim() ? form.content.trim().split(/\s+/).length : 0} words
+            <span aria-hidden="true"> · </span>
+            {form.content.length} characters
           </p>
         </div>
 
