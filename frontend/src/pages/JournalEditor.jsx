@@ -4,6 +4,7 @@ import { ArrowLeft, ImagePlus, Star, X, Plus, Save } from 'lucide-react';
 import MoodSelector from '../components/MoodSelector';
 import { Spinner, SkeletonLines } from '../components/Loading';
 import { SprigLeft, TapedNote } from '../components/Botanical';
+import EmojiPicker from '../components/EmojiPicker';
 import journalService from '../services/journalService';
 import uploadService from '../services/uploadService';
 import { getErrorMessage } from '../services/api';
@@ -45,6 +46,26 @@ export default function JournalEditor() {
   const [error, setError] = useState('');
 
   const fileRef = useRef(null);
+  const contentRef = useRef(null);
+
+  /** Insert an emoji at the current cursor position inside the textarea. */
+  const insertEmoji = (emoji) => {
+    const el = contentRef.current;
+    if (!el) {
+      update({ content: form.content + emoji });
+      return;
+    }
+    const start = el.selectionStart ?? form.content.length;
+    const end = el.selectionEnd ?? form.content.length;
+    const next = form.content.slice(0, start) + emoji + form.content.slice(end);
+    update({ content: next });
+    // Restore focus + move caret after the inserted emoji
+    requestAnimationFrame(() => {
+      el.focus();
+      const pos = start + emoji.length;
+      el.setSelectionRange(pos, pos);
+    });
+  };
 
   // Image upload is only offered when the server has Cloudinary configured.
   useEffect(() => {
@@ -227,6 +248,7 @@ export default function JournalEditor() {
           </label>
           <textarea
             id="content"
+            ref={contentRef}
             value={form.content}
             onChange={(e) => update({ content: e.target.value })}
             placeholder={'How are you feeling today? Write anything…\nIt can be big or small, happy or sad.'}
@@ -235,11 +257,15 @@ export default function JournalEditor() {
             style={{ color: 'rgb(var(--text))' }}
           />
 
-          <p className="muted mt-3 text-right text-xs tabular-nums">
-            {form.content.trim() ? form.content.trim().split(/\s+/).length : 0} words
-            <span aria-hidden="true"> · </span>
-            {form.content.length} characters
-          </p>
+          {/* Toolbar row: emoji picker + word/character count */}
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <EmojiPicker onEmojiSelect={insertEmoji} />
+            <p className="muted text-xs tabular-nums">
+              {form.content.trim() ? form.content.trim().split(/\s+/).length : 0} words
+              <span aria-hidden="true"> · </span>
+              {form.content.length} characters
+            </p>
+          </div>
         </div>
 
         {/* Side panel */}
