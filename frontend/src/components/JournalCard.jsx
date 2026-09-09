@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Star, MoreVertical, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { Star, MoreVertical, Pencil, Trash2, BookOpen, Lock } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import MoodBadge from './MoodBadge';
 import { relativeDay, excerpt } from '../utils/format';
@@ -50,7 +50,18 @@ export default function JournalCard({
           {relativeDay(entry.date)}
         </time>
 
-        <div className="flex shrink-0 items-center gap-0.5">
+        <div className="flex shrink-0 items-center gap-1">
+          {entry.isLocked && (
+            <span
+              className="chip !py-0.5 !text-[10px] inline-flex items-center gap-1"
+              style={{ color: 'rgb(var(--brandy))', backgroundColor: 'rgb(var(--brandy) / 0.1)' }}
+              title="Password Protected"
+            >
+              <Lock size={10} aria-hidden="true" />
+              Locked
+            </span>
+          )}
+
           {entry.isDraft && (
             <span className="chip !py-0.5 !text-[10px]" style={{ color: 'rgb(var(--olive))' }}>
               Draft
@@ -129,7 +140,7 @@ export default function JournalCard({
       {/* Body */}
       <Link to={`/journal/${entry._id}`} className="flex flex-1 flex-col focus:outline-none">
         <div className={isMini ? '' : 'flex flex-col gap-4 sm:flex-row-reverse sm:items-start'}>
-          {entry.imageUrl && (
+          {entry.imageUrl && !entry.isLocked && (
             <img
               src={entry.imageUrl}
               alt=""
@@ -154,7 +165,13 @@ export default function JournalCard({
                 isFeature ? 'line-clamp-4' : isMini ? 'line-clamp-2' : 'line-clamp-3'
               }`}
             >
-              {excerpt(entry.content, isFeature ? 260 : 130)}
+              {entry.isLocked ? (
+                <span className="inline-flex items-center gap-1.5 font-medium italic opacity-75">
+                  <Lock size={13} /> This entry is password protected.
+                </span>
+              ) : (
+                excerpt(entry.content, isFeature ? 260 : 130)
+              )}
             </p>
           </div>
         </div>
@@ -176,3 +193,4 @@ export default function JournalCard({
     </article>
   );
 }
+

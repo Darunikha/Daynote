@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, ImagePlus, Star, X, Plus, Save } from 'lucide-react';
+import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound } from 'lucide-react';
 import MoodSelector from '../components/MoodSelector';
 import { Spinner, SkeletonLines } from '../components/Loading';
 import { SprigLeft, TapedNote } from '../components/Botanical';
@@ -38,6 +38,8 @@ export default function JournalEditor() {
     mood: params.get('mood') || EMPTY.mood,
     date: params.get('date') || EMPTY.date,
   }));
+  const [lockPassword, setLockPassword] = useState('');
+  const [isLocked, setIsLocked] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -93,6 +95,7 @@ export default function JournalEditor() {
           isFavorite: e.isFavorite,
           imageUrl: e.imageUrl || '',
         });
+        setIsLocked(Boolean(e.isLocked));
       })
       .catch((err) => active && setError(getErrorMessage(err)))
       .finally(() => active && setLoading(false));
@@ -146,7 +149,14 @@ export default function JournalEditor() {
     }
 
     setSaving(true);
-    const payload = { ...form, isDraft: asDraft, title: form.title.trim() || 'Untitled entry' };
+    const payload = {
+      ...form,
+      isDraft: asDraft,
+      title: form.title.trim() || 'Untitled entry',
+    };
+    if (lockPassword.trim()) {
+      payload.lockPassword = lockPassword.trim();
+    }
 
     try {
       const res = isEdit
@@ -287,6 +297,41 @@ export default function JournalEditor() {
               onChange={(e) => update({ date: e.target.value })}
               className="input"
             />
+          </section>
+
+          {/* Password Protection section */}
+          <section className="card p-5">
+            <h2 className="mb-2 font-serif text-base flex items-center gap-2">
+              <KeyRound size={16} className="text-[rgb(var(--brandy))]" />
+              Password Lock
+            </h2>
+            {isLocked ? (
+              <div className="text-xs space-y-2">
+                <p className="text-[rgb(var(--brandy))] font-medium flex items-center gap-1">
+                  <Lock size={12} /> Entry is password protected.
+                </p>
+                <input
+                  type="password"
+                  value={lockPassword}
+                  onChange={(e) => setLockPassword(e.target.value)}
+                  placeholder="Set new password (optional)"
+                  className="input text-xs"
+                />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="muted text-xs">
+                  Set a password to lock this entry from prying eyes.
+                </p>
+                <input
+                  type="password"
+                  value={lockPassword}
+                  onChange={(e) => setLockPassword(e.target.value)}
+                  placeholder="Set lock password (optional)"
+                  className="input text-xs"
+                />
+              </div>
+            )}
           </section>
 
           <section className="card p-5">
@@ -435,3 +480,4 @@ export default function JournalEditor() {
     </div>
   );
 }
+

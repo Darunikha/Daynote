@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Pencil, Trash2, Star, Clock } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Star, Clock, Lock, Unlock, KeyRound } from 'lucide-react';
 import MoodBadge from '../components/MoodBadge';
 import ConfirmDialog from '../components/ConfirmDialog';
+import PasswordModal from '../components/PasswordModal';
 import { SkeletonLines } from '../components/Loading';
 import { Flower } from '../components/Botanical';
 import journalService from '../services/journalService';
@@ -16,24 +17,32 @@ export default function JournalView() {
   const toast = useToast();
 
   const [entry, setEntry] = useState(null);
+  const [isUnlocked, setIsUnlocked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    let active = true;
+  // Password Modal states
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState('unlock'); // 'unlock' | 'lock' | 'remove'
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState('');
+
+  const fetchEntry = (password = '') => {
     setLoading(true);
-
     journalService
-      .get(id)
-      .then((res) => active && setEntry(res.data.entry))
-      .catch((err) => active && setError(getErrorMessage(err)))
-      .finally(() => active && setLoading(false));
+      .get(id, password)
+      .then((res) => {
+        setEntry(res.data.entry);
+        setIsUnlocked(res.data.isUnlocked ?? !res.data.entry.isLocked);
+      })
+      .catch((err) => setError(getErrorMessage(err)))
+      .finally(() => setLoading(false));
+  };
 
-    return () => {
-      active = false;
-    };
+  useEffect(() => {
+    fetchEntry();
   }, [id]);
 
   const toggleFavorite = async () => {
@@ -61,6 +70,37 @@ export default function JournalView() {
     }
   };
 
+  const handleModalSubmit = async (password) => {
+    setModalLoading(true);
+    setModalError('');
+
+    try {
+      if (modalMode === 'unlock') {
+        const res = await journalService.unlock(id, password);
+        setEntry(res.data.entry);
+        setIsUnlocked(true);
+        setModalOpen(false);
+        toast.success('Entry unlocked');
+      } else if (modalMode === 'lock') {
+        const res = await journalService.lock(id, password);
+        setEntry(res.data.entry);
+        setIsUnlocked(true);
+        setModalOpen(false);
+        toast.success('Entry locked with password');
+      } else if (modalMode === 'remove') {
+        const res = await journalService.removeLock(id, password);
+        setEntry(res.data.entry);
+        setIsUnlocked(true);
+        setModalOpen(false);
+        toast.success('Lock removed from entry');
+      }
+    } catch (err) {
+      setModalError(getErrorMessage(err));
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="card mx-auto max-w-3xl space-y-5 p-6 sm:p-10">
@@ -83,6 +123,8 @@ export default function JournalView() {
     );
   }
 
+  const isLockedView = entry.isLocked && !isUnlocked;
+
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       {/* Actions bar */}
@@ -97,6 +139,43 @@ export default function JournalView() {
         </button>
 
         <div className="flex items-center gap-2">
+          {/* Lock / Unlock button */}
+          {entry.isLocked ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (isLockedView) {
+                  setModalMode('unlock');
+                } else {
+                  setModalMode('remove');
+                }
+                setModalError('');
+                setModalOpen(true);
+              }}
+              className="btn btn-ghost !px-3.5 !py-2 text-sm"
+              title={isLockedView ? 'Unlock Entry' : 'Remove Password Lock'}
+            >
+              {isLockedView ? <Lock size={14} /> : <Unlock size={14} />}
+              <span className="hidden sm:inline">
+                {isLockedView ? 'Unlock' : 'Remove Lock'}
+              </span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setModalMode('lock');
+                setModalError('');
+                setModalOpen(true);
+              }}
+              className="btn btn-ghost !px-3.5 !py-2 text-sm"
+              title="Lock Entry with Password"
+            >
+              <KeyRound size={14} />
+              <span className="hidden sm:inline">Lock</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={toggleFavorite}
@@ -111,10 +190,12 @@ export default function JournalView() {
             />
           </button>
 
-          <Link to={`/journal/${id}/edit`} className="btn btn-ghost !px-4 !py-2 text-sm">
-            <Pencil size={14} aria-hidden="true" />
-            <span className="hidden sm:inline">Edit</span>
-          </Link>
+          {!isLockedView && (
+            <Link to={`/journal/${id}/edit`} className="btn btn-ghost !px-4 !py-2 text-sm">
+              <Pencil size={14} aria-hidden="true" />
+              <span className="hidden sm:inline">Edit</span>
+            </Link>
+          )}
 
           <button
             type="button"
@@ -144,46 +225,88 @@ export default function JournalView() {
               Draft
             </span>
           )}
+          {entry.isLocked && (
+            <span
+              className="chip inline-flex items-center gap-1"
+              style={{ color: 'rgb(var(--brandy))', backgroundColor: 'rgb(var(--brandy) / 0.1)' }}
+            >
+              <Lock size={12} /> Password Protected
+            </span>
+          )}
         </div>
 
         <h1 className="mb-4 break-words font-serif text-3xl leading-tight sm:text-4xl">
           {entry.title}
         </h1>
 
-        <p className="muted mb-8 inline-flex items-center gap-1.5 text-xs">
-          <Clock size={12} aria-hidden="true" />
-          {readingTime(entry.content)} min read
-        </p>
+        {isLockedView ? (
+          <div className="my-8 rounded-2xl border border-dashed p-8 text-center" style={{ backgroundColor: 'rgb(var(--surface-alt))' }}>
+            <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[rgb(var(--accent-soft))] text-[rgb(var(--heading))]">
+              <Lock size={22} />
+            </span>
+            <h2 className="mb-1 font-serif text-lg">This Entry is Locked</h2>
+            <p className="muted mb-6 text-sm">
+              Please enter the password to view this journal entry.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setModalMode('unlock');
+                setModalError('');
+                setModalOpen(true);
+              }}
+              className="btn btn-primary"
+            >
+              <Unlock size={15} /> Unlock Entry
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="muted mb-8 inline-flex items-center gap-1.5 text-xs">
+              <Clock size={12} aria-hidden="true" />
+              {readingTime(entry.content)} min read
+            </p>
 
-        {entry.imageUrl && (
-          <img
-            src={entry.imageUrl}
-            alt=""
-            className="mb-8 max-h-[420px] w-full rounded-2xl object-cover"
-          />
-        )}
+            {entry.imageUrl && (
+              <img
+                src={entry.imageUrl}
+                alt=""
+                className="mb-8 max-h-[420px] w-full rounded-2xl object-cover"
+              />
+            )}
 
-        <div className="prose-journal max-w-[68ch] text-[15px] sm:text-base" style={{ color: 'rgb(var(--text))' }}>
-          {toParagraphs(entry.content).map((p, i) => (
-            <p key={i}>{p}</p>
-          ))}
-        </div>
+            <div className="prose-journal max-w-[68ch] text-[15px] sm:text-base" style={{ color: 'rgb(var(--text))' }}>
+              {toParagraphs(entry.content).map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
 
-        {entry.tags?.length > 0 && (
-          <ul className="mt-10 flex flex-wrap gap-2 border-t pt-6">
-            {entry.tags.map((tag) => (
-              <li key={tag}>
-                <Link
-                  to={`/journal?tag=${encodeURIComponent(tag)}`}
-                  className="chip transition-colors hover:text-[rgb(var(--heading))]"
-                >
-                  #{tag}
-                </Link>
-              </li>
-            ))}
-          </ul>
+            {entry.tags?.length > 0 && (
+              <ul className="mt-10 flex flex-wrap gap-2 border-t pt-6">
+                {entry.tags.map((tag) => (
+                  <li key={tag}>
+                    <Link
+                      to={`/journal?tag=${encodeURIComponent(tag)}`}
+                      className="chip transition-colors hover:text-[rgb(var(--heading))]"
+                    >
+                      #{tag}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </>
         )}
       </article>
+
+      <PasswordModal
+        open={modalOpen}
+        mode={modalMode}
+        onSubmit={handleModalSubmit}
+        onCancel={() => setModalOpen(false)}
+        loading={modalLoading}
+        error={modalError}
+      />
 
       <ConfirmDialog
         open={confirmOpen}
@@ -197,3 +320,4 @@ export default function JournalView() {
     </div>
   );
 }
+

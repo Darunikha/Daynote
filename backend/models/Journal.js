@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const MOODS = [
   'happy',
@@ -39,10 +40,23 @@ const journalSchema = new mongoose.Schema(
     date: { type: Date, default: Date.now, index: true },
     isFavorite: { type: Boolean, default: false },
     isDraft: { type: Boolean, default: false },
+    isLocked: { type: Boolean, default: false },
+    lockPassword: { type: String, select: false },
     imageUrl: { type: String, default: '' },
   },
   { timestamps: true }
 );
+
+journalSchema.methods.matchLockPassword = async function matchLockPassword(entered) {
+  if (!this.lockPassword) return false;
+  return bcrypt.compare(entered, this.lockPassword);
+};
+
+journalSchema.methods.setLockPassword = async function setLockPassword(password) {
+  const salt = await bcrypt.genSalt(10);
+  this.lockPassword = await bcrypt.hash(password, salt);
+  this.isLocked = true;
+};
 
 // Text search across title + content, scoped per-user at query time.
 journalSchema.index({ title: 'text', content: 'text', tags: 'text' });
@@ -50,3 +64,4 @@ journalSchema.index({ userId: 1, date: -1 });
 
 module.exports = mongoose.model('Journal', journalSchema);
 module.exports.MOODS = MOODS;
+

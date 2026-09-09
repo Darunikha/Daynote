@@ -43,10 +43,21 @@ const getJournals = asyncHandler(async (req, res) => {
     Journal.countDocuments(filter),
   ]);
 
+  const sanitizedEntries = entries.map((entry) => {
+    if (entry.isLocked) {
+      return {
+        ...entry,
+        content: '🔒 This entry is password protected.',
+        imageUrl: '',
+      };
+    }
+    return entry;
+  });
+
   return ok(res, {
     message: 'Journal entries fetched successfully',
     data: {
-      entries,
+      entries: sanitizedEntries,
       pagination: { page, limit, total, pages: Math.ceil(total / limit) || 1 },
     },
   });
@@ -109,9 +120,28 @@ const getTags = asyncHandler(async (req, res) => {
 
 // GET /api/journals/:id
 const getJournal = asyncHandler(async (req, res) => {
-  const entry = await Journal.findOne(scoped(req, { _id: req.params.id }));
+  const entry = await Journal.findOne(scoped(req, { _id: req.params.id })).select('+lockPassword');
   if (!entry) return fail(res, 'We could not find that entry', 404);
-  return ok(res, { message: 'Journal entry fetched successfully', data: { entry } });
+
+  if (entry.isLocked) {
+    const passwordHeader = req.headers['x-entry-password'] || req.query.password;
+    let unlocked = false;
+    if (passwordHeader) {
+      unlocked = await entry.matchLockPassword(passwordHeader);
+    }
+    if (!unlocked) {
+      const masked = entry.toObject();
+      delete masked.lockPassword;
+      masked.content = '🔒 This entry is password protected.';
+      masked.imageUrl = '';
+      masked.isLocked = true;
+      return ok(res, { message: 'Journal entry is locked', data: { entry: masked, isUnlocked: false } });
+    }
+  }
+
+  const obj = entry.toObject();
+  delete obj.lockPassword;
+  return ok(res, { message: 'Journal entry fetched successfully', data: { entry: obj, isUnlocked: true } });
 });
 
 const pickBody = (body) => {
@@ -144,11 +174,19 @@ const createJournal = asyncHandler(async (req, res) => {
     return fail(res, 'That mood is not one we recognise', 400);
   }
 
-  const entry = await Journal.create({ ...payload, userId: req.user._id });
+  const entry = new Journal({ ...payload, userId: req.user._id });
+  if (req.body.lockPassword && String(req.body.lockPassword).trim()) {
+    await entry.setLockPassword(String(req.body.lockPassword).trim());
+  }
+  await entry.save();
+
+  const obj = entry.toObject();
+  delete obj.lockPassword;
+
   return ok(res, {
     status: 201,
     message: payload.isDraft ? 'Draft saved successfully' : 'Journal entry created successfully',
-    data: { entry },
+    data: { entry: obj },
   });
 });
 
@@ -163,13 +201,21 @@ const updateJournal = asyncHandler(async (req, res) => {
     return fail(res, 'That mood is not one we recognise', 400);
   }
 
-  const entry = await Journal.findOneAndUpdate(scoped(req, { _id: req.params.id }), payload, {
-    new: true,
-    runValidators: true,
-  });
+  const entry = await Journal.findOne(scoped(req, { _id: req.params.id })).select('+lockPassword');
   if (!entry) return fail(res, 'We could not find that entry', 404);
 
-  return ok(res, { message: 'Journal entry updated successfully', data: { entry } });
+  // If entry is locked, check if lockPassword was passed in body to edit or update lock password
+  if (req.body.lockPassword && String(req.body.lockPassword).trim()) {
+    await entry.setLockPassword(String(req.body.lockPassword).trim());
+  }
+
+  Object.assign(entry, payload);
+  await entry.save();
+
+  const obj = entry.toObject();
+  delete obj.lockPassword;
+
+  return ok(res, { message: 'Journal entry updated successfully', data: { entry: obj } });
 });
 
 // DELETE /api/journals/:id
@@ -194,6 +240,75 @@ const toggleFavorite = asyncHandler(async (req, res) => {
   });
 });
 
+// POST /api/journals/:id/lock
+const lockJournal = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+  if (!password || !String(password).trim()) {
+    return fail(res, 'Please provide a password to lock this entry', 400);
+  }
+
+  const entry = await Journal.findOne(scoped(req, { _id: req.params.id })).select('+lockPassword');
+  if (!entry) return fail(res, 'We could not find that entry', 404);
+
+  await entry.setLockPassword(String(password).trim());
+  await entry.save();
+
+  const obj = entry.toObject();
+  delete obj.lockPassword;
+  return ok(res, { message: 'Entry locked with password successfully', data: { entry: obj } });
+});
+
+// POST /api/journals/:id/unlock
+const unlockJournal = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+  if (!password) {
+    return fail(res, 'Password is required to unlock this entry', 400);
+  }
+
+  const entry = await Journal.findOne(scoped(req, { _id: req.params.id })).select('+lockPassword');
+  if (!entry) return fail(res, 'We could not find that entry', 404);
+
+  if (!entry.isLocked) {
+    const obj = entry.toObject();
+    delete obj.lockPassword;
+    return ok(res, { message: 'Entry is not locked', data: { entry: obj } });
+  }
+
+  const isValid = await entry.matchLockPassword(password);
+  if (!isValid) {
+    return fail(res, 'Incorrect password. Access denied.', 401);
+  }
+
+  const obj = entry.toObject();
+  delete obj.lockPassword;
+  return ok(res, { message: 'Entry unlocked successfully', data: { entry: obj } });
+});
+
+// POST /api/journals/:id/remove-lock
+const removeJournalLock = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+  const entry = await Journal.findOne(scoped(req, { _id: req.params.id })).select('+lockPassword');
+  if (!entry) return fail(res, 'We could not find that entry', 404);
+
+  if (entry.isLocked) {
+    if (!password) {
+      return fail(res, 'Password required to remove lock', 400);
+    }
+    const isValid = await entry.matchLockPassword(password);
+    if (!isValid) {
+      return fail(res, 'Incorrect password', 401);
+    }
+  }
+
+  entry.isLocked = false;
+  entry.lockPassword = undefined;
+  await entry.save();
+
+  const obj = entry.toObject();
+  delete obj.lockPassword;
+  return ok(res, { message: 'Lock removed successfully', data: { entry: obj } });
+});
+
 module.exports = {
   getJournals,
   getJournal,
@@ -201,6 +316,10 @@ module.exports = {
   updateJournal,
   deleteJournal,
   toggleFavorite,
+  lockJournal,
+  unlockJournal,
+  removeJournalLock,
   getStats,
   getTags,
 };
+

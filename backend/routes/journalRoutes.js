@@ -6,6 +6,9 @@ const {
   updateJournal,
   deleteJournal,
   toggleFavorite,
+  lockJournal,
+  unlockJournal,
+  removeJournalLock,
   getStats,
   getTags,
 } = require('../controllers/journalController');
@@ -22,5 +25,9 @@ router.get('/tags', getTags);
 router.route('/').get(getJournals).post(createJournal);
 router.route('/:id').get(getJournal).put(updateJournal).delete(deleteJournal);
 router.patch('/:id/favorite', toggleFavorite);
+router.post('/:id/lock', lockJournal);
+router.post('/:id/unlock', unlockJournal);
+router.post('/:id/remove-lock', removeJournalLock);
 
 module.exports = router;
+
