@@ -19,10 +19,10 @@ if (isCloudinaryConfigured) {
 /**
  * Uploads an in-memory file buffer to Cloudinary and resolves with the secure URL.
  */
-const uploadBuffer = (buffer, folder = 'daynote') =>
+const uploadBuffer = (buffer, folder = 'daynote', resourceType = 'auto') =>
   new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: 'image' },
+      { folder, resource_type: resourceType },
       (error, result) => (error ? reject(error) : resolve(result))
     );
     stream.end(buffer);

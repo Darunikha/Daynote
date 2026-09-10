@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Star, MoreVertical, Pencil, Trash2, BookOpen, Lock } from 'lucide-react';
+import { Star, MoreVertical, Pencil, Trash2, BookOpen, Lock, Hourglass, Mic } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import MoodBadge from './MoodBadge';
 import { relativeDay, excerpt } from '../utils/format';
@@ -50,7 +50,32 @@ export default function JournalCard({
           {relativeDay(entry.date)}
         </time>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 items-center gap-1 flex-wrap justify-end">
+          {entry.isTimeCapsule && (
+            <span
+              className="chip !py-0.5 !text-[10px] inline-flex items-center gap-1"
+              style={{
+                color: entry.isCapsuleLocked ? '#D97706' : '#059669',
+                backgroundColor: entry.isCapsuleLocked ? 'rgba(217, 119, 6, 0.12)' : 'rgba(5, 150, 105, 0.12)',
+              }}
+              title={entry.isCapsuleLocked ? 'Sealed Time Capsule' : 'Unlocked Time Capsule'}
+            >
+              <Hourglass size={10} aria-hidden="true" />
+              {entry.isCapsuleLocked ? 'Sealed' : 'Capsule'}
+            </span>
+          )}
+
+          {entry.audioUrl && (
+            <span
+              className="chip !py-0.5 !text-[10px] inline-flex items-center gap-1"
+              style={{ color: '#0284C7', backgroundColor: 'rgba(2, 132, 199, 0.12)' }}
+              title="Voice Note Attached"
+            >
+              <Mic size={10} aria-hidden="true" />
+              Voice
+            </span>
+          )}
+
           {entry.isLocked && (
             <span
               className="chip !py-0.5 !text-[10px] inline-flex items-center gap-1"

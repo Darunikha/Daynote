@@ -43,6 +43,10 @@ const journalSchema = new mongoose.Schema(
     isLocked: { type: Boolean, default: false },
     lockPassword: { type: String, select: false },
     imageUrl: { type: String, default: '' },
+    isTimeCapsule: { type: Boolean, default: false },
+    unlockDate: { type: Date },
+    audioUrl: { type: String, default: '' },
+    audioTranscript: { type: String, default: '' },
   },
   { timestamps: true }
 );

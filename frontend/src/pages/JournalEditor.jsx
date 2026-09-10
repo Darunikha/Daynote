@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound } from 'lucide-react';
+import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound, Hourglass, Mic } from 'lucide-react';
 import MoodSelector from '../components/MoodSelector';
+import VoiceRecorder from '../components/VoiceRecorder';
 import { Spinner, SkeletonLines } from '../components/Loading';
 import { SprigLeft, TapedNote } from '../components/Botanical';
 import EmojiPicker from '../components/EmojiPicker';
@@ -21,6 +22,10 @@ const EMPTY = {
   date: toDateInput(),
   isFavorite: false,
   imageUrl: '',
+  isTimeCapsule: false,
+  unlockDate: '',
+  audioUrl: '',
+  audioTranscript: '',
 };
 
 /** Create and edit share this page: an /:id param switches it to edit mode. */
@@ -94,6 +99,10 @@ export default function JournalEditor() {
           date: toDateInput(e.date),
           isFavorite: e.isFavorite,
           imageUrl: e.imageUrl || '',
+          isTimeCapsule: Boolean(e.isTimeCapsule),
+          unlockDate: e.unlockDate ? toDateInput(e.unlockDate) : '',
+          audioUrl: e.audioUrl || '',
+          audioTranscript: e.audioTranscript || '',
         });
         setIsLocked(Boolean(e.isLocked));
       })
@@ -268,13 +277,23 @@ export default function JournalEditor() {
           />
 
           {/* Toolbar row: emoji picker + word/character count */}
-          <div className="mt-3 flex items-center justify-between gap-2">
+          <div className="mt-3 flex items-center justify-between gap-2 mb-4">
             <EmojiPicker onEmojiSelect={insertEmoji} />
             <p className="muted text-xs tabular-nums">
               {form.content.trim() ? form.content.trim().split(/\s+/).length : 0} words
               <span aria-hidden="true"> · </span>
               {form.content.length} characters
             </p>
+          </div>
+
+          {/* Voice Note Recorder */}
+          <div className="mt-6 border-t border-stone-200 dark:border-stone-800 pt-5">
+            <VoiceRecorder
+              audioUrl={form.audioUrl}
+              audioTranscript={form.audioTranscript}
+              onAudioChange={(url) => update({ audioUrl: url })}
+              onTranscriptChange={(txt) => update({ audioTranscript: txt })}
+            />
           </div>
         </div>
 
@@ -297,6 +316,51 @@ export default function JournalEditor() {
               onChange={(e) => update({ date: e.target.value })}
               className="input"
             />
+          </section>
+
+          {/* Time Capsule section */}
+          <section className="card p-5">
+            <h2 className="mb-2 font-serif text-base flex items-center gap-2">
+              <Hourglass size={16} className="text-amber-600 dark:text-amber-400" />
+              Time Capsule
+            </h2>
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-[rgb(var(--heading))]">
+                <input
+                  type="checkbox"
+                  checked={form.isTimeCapsule}
+                  onChange={(e) =>
+                    update({
+                      isTimeCapsule: e.target.checked,
+                      unlockDate:
+                        e.target.checked && !form.unlockDate
+                          ? toDateInput(new Date(Date.now() + 86400000))
+                          : form.unlockDate,
+                    })
+                  }
+                  className="rounded text-amber-600 focus:ring-amber-500"
+                />
+                Seal as Time Capsule
+              </label>
+              {form.isTimeCapsule && (
+                <div className="space-y-1 pl-5">
+                  <label htmlFor="unlockDate" className="label text-[11px]">
+                    Unlock Date
+                  </label>
+                  <input
+                    id="unlockDate"
+                    type="date"
+                    value={form.unlockDate}
+                    min={toDateInput(new Date(Date.now() + 86400000))}
+                    onChange={(e) => update({ unlockDate: e.target.value })}
+                    className="input text-xs"
+                  />
+                  <p className="muted text-[11px] leading-tight mt-1">
+                    Entry content & audio will stay sealed until this date.
+                  </p>
+                </div>
+              )}
+            </div>
           </section>
 
           {/* Password Protection section */}

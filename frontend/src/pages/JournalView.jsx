@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Pencil, Trash2, Star, Clock, Lock, Unlock, KeyRound } from 'lucide-react';
+import { ArrowLeft, Pencil, Trash2, Star, Clock, Lock, Unlock, KeyRound, Hourglass, Volume2, Sparkles, Mic } from 'lucide-react';
 import MoodBadge from '../components/MoodBadge';
 import ConfirmDialog from '../components/ConfirmDialog';
 import PasswordModal from '../components/PasswordModal';
@@ -124,6 +124,7 @@ export default function JournalView() {
   }
 
   const isLockedView = entry.isLocked && !isUnlocked;
+  const isCapsuleLocked = Boolean(entry.isCapsuleLocked);
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
@@ -190,7 +191,7 @@ export default function JournalView() {
             />
           </button>
 
-          {!isLockedView && (
+          {!isLockedView && !isCapsuleLocked && (
             <Link to={`/journal/${id}/edit`} className="btn btn-ghost !px-4 !py-2 text-sm">
               <Pencil size={14} aria-hidden="true" />
               <span className="hidden sm:inline">Edit</span>
@@ -220,6 +221,25 @@ export default function JournalView() {
             {formatLongDate(entry.date)}
           </time>
           <MoodBadge mood={entry.mood} size="lg" />
+          {entry.isTimeCapsule && (
+            <span
+              className="chip inline-flex items-center gap-1 font-medium"
+              style={{
+                color: isCapsuleLocked ? '#D97706' : '#059669',
+                backgroundColor: isCapsuleLocked ? 'rgba(217, 119, 6, 0.12)' : 'rgba(5, 150, 105, 0.12)',
+              }}
+            >
+              <Hourglass size={12} /> {isCapsuleLocked ? 'Sealed Time Capsule' : 'Unlocked Time Capsule'}
+            </span>
+          )}
+          {entry.audioUrl && !isCapsuleLocked && (
+            <span
+              className="chip inline-flex items-center gap-1 font-medium"
+              style={{ color: '#0284C7', backgroundColor: 'rgba(2, 132, 199, 0.12)' }}
+            >
+              <Mic size={12} /> Voice Note
+            </span>
+          )}
           {entry.isDraft && (
             <span className="chip" style={{ color: 'rgb(var(--olive))' }}>
               Draft
@@ -239,7 +259,22 @@ export default function JournalView() {
           {entry.title}
         </h1>
 
-        {isLockedView ? (
+        {isCapsuleLocked ? (
+          <div className="my-8 rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50/70 dark:bg-amber-950/40 p-8 text-center shadow-sm space-y-3">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 shadow">
+              <Hourglass size={28} />
+            </span>
+            <h2 className="font-serif text-xl text-amber-900 dark:text-amber-100">
+              Sealed Time Capsule
+            </h2>
+            <p className="text-sm text-amber-800 dark:text-amber-300 max-w-md mx-auto leading-relaxed">
+              This journal entry was sealed on purpose. Its content, images, and audio recordings will unlock on{' '}
+              <strong className="font-semibold underline">
+                {entry.unlockDate ? formatLongDate(entry.unlockDate) : 'its target date'}
+              </strong>.
+            </p>
+          </div>
+        ) : isLockedView ? (
           <div className="my-8 rounded-2xl border border-dashed p-8 text-center" style={{ backgroundColor: 'rgb(var(--surface-alt))' }}>
             <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[rgb(var(--accent-soft))] text-[rgb(var(--heading))]">
               <Lock size={22} />
@@ -280,6 +315,34 @@ export default function JournalView() {
                 <p key={i}>{p}</p>
               ))}
             </div>
+
+            {/* Voice Note & Transcript Audio Player */}
+            {entry.audioUrl && (
+              <div className="my-8 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-900/70 p-5 space-y-4 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-amber-600 text-white flex items-center justify-center shadow">
+                    <Volume2 size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-sm text-stone-900 dark:text-stone-100">Attached Voice Note</h3>
+                    <p className="text-xs text-stone-500">Audio playback</p>
+                  </div>
+                </div>
+
+                <audio controls src={entry.audioUrl} className="w-full rounded-lg" />
+
+                {entry.audioTranscript && (
+                  <div className="mt-3 bg-white dark:bg-stone-800 p-4 rounded-lg border border-stone-200 dark:border-stone-700">
+                    <h4 className="text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1.5 mb-1.5">
+                      <Sparkles size={14} /> Speech-to-Text Transcript
+                    </h4>
+                    <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 whitespace-pre-wrap leading-relaxed italic">
+                      "{entry.audioTranscript}"
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {entry.tags?.length > 0 && (
               <ul className="mt-10 flex flex-wrap gap-2 border-t pt-6">

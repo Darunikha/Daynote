@@ -16,6 +16,8 @@ import { MOODS } from '../utils/moods';
 const TABS = [
   { key: 'all', label: 'All' },
   { key: 'favorites', label: 'Favourites' },
+  { key: 'capsules', label: '⏳ Time Capsules' },
+  { key: 'voice', label: '🎙️ Voice Notes' },
   { key: 'notes', label: 'Notes' },
   { key: 'drafts', label: 'Drafts' },
 ];
@@ -62,6 +64,8 @@ export default function MyJournal() {
       page,
       limit: 9,
       favorite: tab === 'favorites' ? 'true' : undefined,
+      timeCapsule: tab === 'capsules' ? 'true' : undefined,
+      hasAudio: tab === 'voice' ? 'true' : undefined,
       drafts: tab === 'drafts' ? 'true' : tab === 'notes' ? 'false' : undefined,
     }),
     [debouncedSearch, mood, tag, sort, page, tab]

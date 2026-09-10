@@ -11,6 +11,14 @@ const uploadService = {
       .post('/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } })
       .then((r) => r.data);
   },
+
+  uploadAudio: (fileOrBlob) => {
+    const form = new FormData();
+    form.append('audio', fileOrBlob, 'recording.webm');
+    return api
+      .post('/upload/audio', form, { headers: { 'Content-Type': 'multipart/form-data' } })
+      .then((r) => r.data);
+  },
 };
 
 export default uploadService;

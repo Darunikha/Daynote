@@ -10,7 +10,7 @@ const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // GET /api/journals
 const getJournals = asyncHandler(async (req, res) => {
-  const { search, mood, tag, favorite, from, to, sort = 'newest', drafts } = req.query;
+  const { search, mood, tag, favorite, from, to, sort = 'newest', drafts, timeCapsule, hasAudio } = req.query;
   const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
   const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 12, 1), 60);
 
@@ -25,6 +25,8 @@ const getJournals = asyncHandler(async (req, res) => {
   if (favorite === 'true') filter.isFavorite = true;
   if (drafts === 'true') filter.isDraft = true;
   if (drafts === 'false') filter.isDraft = false;
+  if (timeCapsule === 'true') filter.isTimeCapsule = true;
+  if (hasAudio === 'true') filter.audioUrl = { $exists: true, $ne: '' };
 
   if (from || to) {
     filter.date = {};
@@ -44,14 +46,35 @@ const getJournals = asyncHandler(async (req, res) => {
   ]);
 
   const sanitizedEntries = entries.map((entry) => {
+    const isCapsuleLocked =
+      Boolean(entry.isTimeCapsule) && Boolean(entry.unlockDate) && new Date(entry.unlockDate) > new Date();
+
     if (entry.isLocked) {
       return {
         ...entry,
         content: '🔒 This entry is password protected.',
         imageUrl: '',
+        audioUrl: '',
+        audioTranscript: '',
+        isCapsuleLocked,
       };
     }
-    return entry;
+    if (isCapsuleLocked) {
+      const unlockStr = new Date(entry.unlockDate).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+      return {
+        ...entry,
+        content: `⏳ Time Capsule Sealed — Unlocks on ${unlockStr}`,
+        imageUrl: '',
+        audioUrl: '',
+        audioTranscript: '',
+        isCapsuleLocked: true,
+      };
+    }
+    return { ...entry, isCapsuleLocked: false };
   });
 
   return ok(res, {
@@ -123,6 +146,9 @@ const getJournal = asyncHandler(async (req, res) => {
   const entry = await Journal.findOne(scoped(req, { _id: req.params.id })).select('+lockPassword');
   if (!entry) return fail(res, 'We could not find that entry', 404);
 
+  const isCapsuleLocked =
+    Boolean(entry.isTimeCapsule) && Boolean(entry.unlockDate) && new Date(entry.unlockDate) > new Date();
+
   if (entry.isLocked) {
     const passwordHeader = req.headers['x-entry-password'] || req.query.password;
     let unlocked = false;
@@ -134,14 +160,31 @@ const getJournal = asyncHandler(async (req, res) => {
       delete masked.lockPassword;
       masked.content = '🔒 This entry is password protected.';
       masked.imageUrl = '';
+      masked.audioUrl = '';
+      masked.audioTranscript = '';
       masked.isLocked = true;
+      masked.isCapsuleLocked = isCapsuleLocked;
       return ok(res, { message: 'Journal entry is locked', data: { entry: masked, isUnlocked: false } });
     }
   }
 
   const obj = entry.toObject();
   delete obj.lockPassword;
-  return ok(res, { message: 'Journal entry fetched successfully', data: { entry: obj, isUnlocked: true } });
+  obj.isCapsuleLocked = isCapsuleLocked;
+
+  if (isCapsuleLocked) {
+    const unlockStr = new Date(entry.unlockDate).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+    obj.content = `⏳ Time Capsule Sealed — Unlocks on ${unlockStr}`;
+    obj.imageUrl = '';
+    obj.audioUrl = '';
+    obj.audioTranscript = '';
+  }
+
+  return ok(res, { message: 'Journal entry fetched successfully', data: { entry: obj, isUnlocked: !entry.isLocked } });
 });
 
 const pickBody = (body) => {
@@ -160,6 +203,10 @@ const pickBody = (body) => {
   if (body.isFavorite !== undefined) out.isFavorite = Boolean(body.isFavorite);
   if (body.isDraft !== undefined) out.isDraft = Boolean(body.isDraft);
   if (body.imageUrl !== undefined) out.imageUrl = body.imageUrl;
+  if (body.isTimeCapsule !== undefined) out.isTimeCapsule = Boolean(body.isTimeCapsule);
+  if (body.unlockDate !== undefined) out.unlockDate = body.unlockDate ? new Date(body.unlockDate) : null;
+  if (body.audioUrl !== undefined) out.audioUrl = body.audioUrl;
+  if (body.audioTranscript !== undefined) out.audioTranscript = body.audioTranscript;
   return out;
 };
 
