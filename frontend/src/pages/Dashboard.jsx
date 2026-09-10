@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PenLine, CalendarDays, HeartPulse, ArrowRight, Star } from 'lucide-react';
+import { PenLine, CalendarDays, HeartPulse, ArrowRight, Star, Sparkles } from 'lucide-react';
 import JournalCard from '../components/JournalCard';
+import MemoryLaneCard from '../components/MemoryLaneCard';
 import MoodSelector from '../components/MoodSelector';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
@@ -27,6 +28,7 @@ export default function Dashboard() {
 
   const [entries, setEntries] = useState([]);
   const [stats, setStats] = useState(null);
+  const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quickMood, setQuickMood] = useState('');
   const [pendingDelete, setPendingDelete] = useState(null);
@@ -35,12 +37,14 @@ export default function Dashboard() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [list, statsRes] = await Promise.all([
+      const [list, statsRes, memoryRes] = await Promise.all([
         journalService.list({ limit: 8, sort: 'newest' }),
         journalService.stats(),
+        journalService.onThisDay().catch(() => ({ data: { entries: [] } })),
       ]);
       setEntries(list.data.entries);
       setStats(statsRes.data);
+      setMemories(memoryRes.data?.entries || []);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -140,6 +144,13 @@ export default function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         {/* Left column */}
         <div className="space-y-6">
+          {/* On This Day / Memory Lane Widget */}
+          {!loading && memories.length > 0 && (
+            <section aria-label="Memory Lane">
+              <MemoryLaneCard memories={memories} />
+            </section>
+          )}
+
           {/* Today's journal */}
           <section aria-labelledby="todays-journal">
             <div className="mb-3 flex items-center justify-between">

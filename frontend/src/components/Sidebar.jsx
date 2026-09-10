@@ -10,6 +10,7 @@ import {
   PenLine,
   Moon,
   Sun,
+  Sparkles,
 } from 'lucide-react';
 import Logo from './Logo';
 import { SprigLeft } from './Botanical';
@@ -20,6 +21,7 @@ import { useTheme } from '../context/ThemeContext';
 export const NAV_ITEMS = [
   { to: '/dashboard', label: 'Home', icon: Home },
   { to: '/journal', label: 'My Journal', icon: BookOpen },
+  { to: '/memory-lane', label: 'Memory Lane', icon: Sparkles },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/mood', label: 'Mood Tracker', icon: HeartPulse },
   { to: '/favorites', label: 'Favorites', icon: Star },

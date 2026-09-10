@@ -356,6 +356,120 @@ const removeJournalLock = asyncHandler(async (req, res) => {
   return ok(res, { message: 'Lock removed successfully', data: { entry: obj } });
 });
 
+// GET /api/journals/on-this-day -> Memories recorded on this calendar day in past years/months
+const getOnThisDay = asyncHandler(async (req, res) => {
+  const targetDate = req.query.date ? new Date(req.query.date) : new Date();
+  const targetMonth = targetDate.getMonth() + 1; // 1-12
+  const targetDay = targetDate.getDate(); // 1-31
+  const targetYear = targetDate.getFullYear();
+
+  // 1. Match exact month & day from prior years
+  const yearlyMatches = await Journal.aggregate([
+    {
+      $match: {
+        userId: req.user._id,
+        isDraft: { $ne: true },
+        $expr: {
+          $and: [
+            { $eq: [{ $month: '$date' }, targetMonth] },
+            { $eq: [{ $dayOfMonth: '$date' }, targetDay] },
+            { $lt: [{ $year: '$date' }, targetYear] },
+          ],
+        },
+      },
+    },
+    { $sort: { date: -1 } },
+  ]);
+
+  let results = [...yearlyMatches];
+
+  // 2. Fallback: if no exact yearly match, find entries on same day of month in prior months
+  if (results.length === 0) {
+    const monthlyMatches = await Journal.aggregate([
+      {
+        $match: {
+          userId: req.user._id,
+          isDraft: { $ne: true },
+          $expr: {
+            $and: [
+              { $eq: [{ $dayOfMonth: '$date' }, targetDay] },
+              { $lt: ['$date', targetDate] },
+            ],
+          },
+        },
+      },
+      { $sort: { date: -1 } },
+      { $limit: 6 },
+    ]);
+    results = [...monthlyMatches];
+  }
+
+  // 3. Format entries and calculate relative time label
+  const sanitized = results.map((entry) => {
+    const entryDate = new Date(entry.date);
+    const yearsDiff = targetYear - entryDate.getFullYear();
+    const monthsDiff =
+      (targetYear - entryDate.getFullYear()) * 12 + (targetDate.getMonth() - entryDate.getMonth());
+
+    let timeAgo = '';
+    if (
+      yearsDiff >= 1 &&
+      entryDate.getMonth() === targetDate.getMonth() &&
+      entryDate.getDate() === targetDate.getDate()
+    ) {
+      timeAgo = `${yearsDiff} ${yearsDiff === 1 ? 'year' : 'years'} ago today`;
+    } else if (yearsDiff >= 1) {
+      timeAgo = `${yearsDiff} ${yearsDiff === 1 ? 'year' : 'years'} ago`;
+    } else if (monthsDiff >= 1) {
+      timeAgo = `${monthsDiff} ${monthsDiff === 1 ? 'month' : 'months'} ago`;
+    } else {
+      timeAgo = 'Past memory';
+    }
+
+    const isCapsuleLocked =
+      Boolean(entry.isTimeCapsule) && Boolean(entry.unlockDate) && new Date(entry.unlockDate) > new Date();
+
+    if (entry.isLocked) {
+      return {
+        ...entry,
+        content: '🔒 This entry is password protected.',
+        imageUrl: '',
+        audioUrl: '',
+        audioTranscript: '',
+        timeAgo,
+        isCapsuleLocked,
+      };
+    }
+
+    if (isCapsuleLocked) {
+      const unlockStr = new Date(entry.unlockDate).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+      return {
+        ...entry,
+        content: `⏳ Time Capsule Sealed — Unlocks on ${unlockStr}`,
+        imageUrl: '',
+        audioUrl: '',
+        audioTranscript: '',
+        timeAgo,
+        isCapsuleLocked: true,
+      };
+    }
+
+    return { ...entry, timeAgo, isCapsuleLocked: false };
+  });
+
+  return ok(res, {
+    message: 'On This Day entries fetched successfully',
+    data: {
+      entries: sanitized,
+      date: { month: targetMonth, day: targetDay, year: targetYear },
+    },
+  });
+});
+
 module.exports = {
   getJournals,
   getJournal,
@@ -368,5 +482,6 @@ module.exports = {
   removeJournalLock,
   getStats,
   getTags,
+  getOnThisDay,
 };
 

@@ -11,6 +11,7 @@ const {
   removeJournalLock,
   getStats,
   getTags,
+  getOnThisDay,
 } = require('../controllers/journalController');
 const { protect } = require('../middleware/auth');
 
@@ -21,6 +22,7 @@ router.use(protect);
 
 router.get('/stats', getStats);
 router.get('/tags', getTags);
+router.get('/on-this-day', getOnThisDay);
 
 router.route('/').get(getJournals).post(createJournal);
 router.route('/:id').get(getJournal).put(updateJournal).delete(deleteJournal);

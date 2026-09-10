@@ -19,6 +19,7 @@ import JournalView from './pages/JournalView';
 import CalendarPage from './pages/CalendarPage';
 import MoodTracker from './pages/MoodTracker';
 import Favorites from './pages/Favorites';
+import MemoryLane from './pages/MemoryLane';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
@@ -83,6 +84,7 @@ export default function App() {
               <Route path="/journal/new" element={<JournalEditor />} />
               <Route path="/journal/:id" element={<JournalView />} />
               <Route path="/journal/:id/edit" element={<JournalEditor />} />
+              <Route path="/memory-lane" element={<MemoryLane />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/mood" element={<MoodTracker />} />
               <Route path="/favorites" element={<Favorites />} />

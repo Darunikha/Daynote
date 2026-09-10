@@ -24,6 +24,7 @@ const journalService = {
   removeLock: (id, password) => api.post(`/journals/${id}/remove-lock`, { password }).then((r) => r.data),
   stats: (params) => api.get('/journals/stats', { params: clean(params) }).then((r) => r.data),
   tags: () => api.get('/journals/tags').then((r) => r.data),
+  onThisDay: (params) => api.get('/journals/on-this-day', { params: clean(params) }).then((r) => r.data),
 };
 
 export default journalService;
