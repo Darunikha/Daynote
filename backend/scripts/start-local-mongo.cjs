@@ -39,7 +39,7 @@ const isPortOpen = (host, port) =>
 (async () => {
   if (await isPortOpen(HOST, PORT)) {
     console.log(`MongoDB is already listening on ${HOST}:${PORT} - nothing to do.`);
-    process.exit(0);
+    return;
   }
 
   fs.mkdirSync(DB_DIR, { recursive: true });
@@ -54,20 +54,11 @@ const isPortOpen = (host, port) =>
   const child = spawn(
     mongodPath,
     ['--dbpath', DB_DIR, '--logpath', LOG_FILE, '--port', String(PORT), '--bind_ip', HOST],
-    { detached: true, stdio: 'ignore' }
+    { stdio: 'inherit' }
   );
-  child.unref();
 
-  for (let i = 0; i < 30; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    if (await isPortOpen(HOST, PORT)) {
-      console.log('MongoDB is up. You can now run: npm run dev');
-      process.exit(0);
-    }
-    // eslint-disable-next-line no-await-in-loop
-    await new Promise((r) => setTimeout(r, 500));
-  }
-
-  console.error('MongoDB did not come up in time. Check backend/.mongodb-data/log/mongod.log');
-  process.exit(1);
+  child.on('close', (code) => {
+    process.exit(code || 0);
+  });
 })();
+
