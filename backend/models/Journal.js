@@ -13,6 +13,51 @@ const MOODS = [
   'tired',
 ];
 
+// Keep in sync with frontend/src/utils/paperStyles.js
+const PAPER_STYLES = [
+  'plain',
+  'pink-gingham',
+  'lavender-gingham',
+  'soft-pink-check',
+  'blue-gingham',
+  'brown-check',
+  'sage-green-check',
+  'cream-beige-check',
+  'vintage-beige-paper',
+  'old-book-paper',
+  'vintage-handwritten-paper',
+  'kraft-paper',
+  'aged-notebook-paper',
+  'soft-parchment',
+  'cream-grid',
+  'beige-grid',
+  'fine-graph-paper',
+  'dot-grid',
+  'ruled-notebook',
+  'handwritten-notebook',
+  'tiny-pink-floral',
+  'vintage-floral',
+  'dainty-flowers',
+  'botanical-leaves',
+  'pressed-flowers',
+  'wildflower-paper',
+  'soft-green-botanical',
+  'blush-stripes',
+  'cream-stripes',
+  'soft-lavender-stripes',
+  'tiny-dots',
+  'subtle-hearts',
+  'little-stars',
+  'soft-clouds',
+  'scattered-doodles',
+  'linen',
+  'warm-cream',
+  'soft-beige',
+  'cocoa-paper',
+  'muted-brown',
+  'minimal-paper',
+];
+
 const journalSchema = new mongoose.Schema(
   {
     userId: {
@@ -28,6 +73,7 @@ const journalSchema = new mongoose.Schema(
       trim: true,
     },
     mood: { type: String, enum: MOODS, default: 'neutral' },
+    paperStyle: { type: String, enum: PAPER_STYLES, default: 'plain' },
     tags: {
       type: [String],
       default: [],
@@ -68,4 +114,5 @@ journalSchema.index({ userId: 1, date: -1 });
 
 module.exports = mongoose.model('Journal', journalSchema);
 module.exports.MOODS = MOODS;
+module.exports.PAPER_STYLES = PAPER_STYLES;
 

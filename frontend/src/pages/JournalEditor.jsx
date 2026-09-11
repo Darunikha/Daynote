@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound, Hourglass, Mic } from 'lucide-react';
 import MoodSelector from '../components/MoodSelector';
+import PaperStylePicker from '../components/PaperStylePicker';
+import { getPaperBackground } from '../utils/paperStyles';
 import VoiceRecorder from '../components/VoiceRecorder';
 import { Spinner, SkeletonLines } from '../components/Loading';
 import { SprigLeft, TapedNote } from '../components/Botanical';
@@ -18,6 +20,7 @@ const EMPTY = {
   title: '',
   content: '',
   mood: 'neutral',
+  paperStyle: 'plain',
   tags: [],
   date: toDateInput(),
   isFavorite: false,
@@ -95,6 +98,7 @@ export default function JournalEditor() {
           title: e.title === 'Untitled entry' ? '' : e.title,
           content: e.content,
           mood: e.mood,
+          paperStyle: e.paperStyle || 'plain',
           tags: e.tags || [],
           date: toDateInput(e.date),
           isFavorite: e.isFavorite,
@@ -247,8 +251,8 @@ export default function JournalEditor() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
-        {/* Writing area */}
-        <div className="card p-5 sm:p-6">
+        {/* Writing area — previews the selected paper style live */}
+        <div className="card p-5 sm:p-6" style={getPaperBackground(form.paperStyle)}>
           <label htmlFor="title" className="sr-only">
             Title
           </label>
@@ -302,6 +306,14 @@ export default function JournalEditor() {
           <section className="card p-5">
             <h2 className="mb-3 font-serif text-base">Today&apos;s Mood</h2>
             <MoodSelector value={form.mood} onChange={(m) => update({ mood: m || 'neutral' })} size="sm" />
+          </section>
+
+          <section className="card p-5">
+            <h2 className="mb-3 font-serif text-base">Entry Style</h2>
+            <PaperStylePicker
+              value={form.paperStyle}
+              onChange={(style) => update({ paperStyle: style })}
+            />
           </section>
 
           <section className="card p-5">

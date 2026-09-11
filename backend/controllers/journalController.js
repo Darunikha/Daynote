@@ -1,5 +1,5 @@
 const Journal = require('../models/Journal');
-const { MOODS } = require('../models/Journal');
+const { MOODS, PAPER_STYLES } = require('../models/Journal');
 const { ok, fail, asyncHandler } = require('../utils/response');
 
 /** Every query is locked to the signed-in user, so entries can never leak across accounts. */
@@ -192,6 +192,7 @@ const pickBody = (body) => {
   if (body.title !== undefined) out.title = String(body.title).trim() || 'Untitled entry';
   if (body.content !== undefined) out.content = body.content;
   if (body.mood !== undefined) out.mood = body.mood;
+  if (body.paperStyle !== undefined) out.paperStyle = body.paperStyle;
   if (body.tags !== undefined) {
     out.tags = Array.isArray(body.tags)
       ? body.tags
@@ -220,6 +221,9 @@ const createJournal = asyncHandler(async (req, res) => {
   if (payload.mood && !MOODS.includes(payload.mood)) {
     return fail(res, 'That mood is not one we recognise', 400);
   }
+  if (payload.paperStyle && !PAPER_STYLES.includes(payload.paperStyle)) {
+    return fail(res, 'That paper style is not one we recognise', 400);
+  }
 
   const entry = new Journal({ ...payload, userId: req.user._id });
   if (req.body.lockPassword && String(req.body.lockPassword).trim()) {
@@ -246,6 +250,9 @@ const updateJournal = asyncHandler(async (req, res) => {
   }
   if (payload.mood && !MOODS.includes(payload.mood)) {
     return fail(res, 'That mood is not one we recognise', 400);
+  }
+  if (payload.paperStyle && !PAPER_STYLES.includes(payload.paperStyle)) {
+    return fail(res, 'That paper style is not one we recognise', 400);
   }
 
   const entry = await Journal.findOne(scoped(req, { _id: req.params.id })).select('+lockPassword');

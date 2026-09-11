@@ -10,6 +10,7 @@ import journalService from '../services/journalService';
 import { getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { formatLongDate, toParagraphs, readingTime } from '../utils/format';
+import { getPaperBackground } from '../utils/paperStyles';
 
 export default function JournalView() {
   const { id } = useParams();
@@ -210,7 +211,10 @@ export default function JournalView() {
       </div>
 
       {/* The entry itself */}
-      <article className="card relative overflow-hidden p-6 sm:p-10">
+      <article
+        className="card relative overflow-hidden p-6 sm:p-10"
+        style={getPaperBackground(entry.paperStyle)}
+      >
         <Flower className="pointer-events-none absolute -right-2 -top-2 h-16 w-16 text-[rgb(var(--accent))] opacity-25" />
 
         <div className="mb-4 flex flex-wrap items-center gap-3">
