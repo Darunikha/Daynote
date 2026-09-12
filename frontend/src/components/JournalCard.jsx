@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import MoodBadge from './MoodBadge';
 import { relativeDay, excerpt } from '../utils/format';
 import { getPaperBackground } from '../utils/paperStyles';
+import EntryCharm from './EntryCharm';
 
 /**
  * A single page from the notebook. `variant="feature"` renders the larger
@@ -38,11 +39,12 @@ export default function JournalCard({
 
   return (
     <article
-      className={`card card-hover group relative flex overflow-hidden ${
+      className={`card card-hover group relative flex ${
         isMini ? 'flex-col p-4' : 'flex-col p-5 sm:p-6'
       }`}
       style={getPaperBackground(entry.paperStyle)}
     >
+      <EntryCharm value={entry.decoration} />
       {/* Header row: date + actions */}
       <div className="mb-2 flex items-start justify-between gap-3">
         <time

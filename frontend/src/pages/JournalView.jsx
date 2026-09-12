@@ -11,6 +11,7 @@ import { getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { formatLongDate, toParagraphs, readingTime } from '../utils/format';
 import { getPaperBackground } from '../utils/paperStyles';
+import EntryCharm from '../components/EntryCharm';
 
 export default function JournalView() {
   const { id } = useParams();
@@ -211,10 +212,12 @@ export default function JournalView() {
       </div>
 
       {/* The entry itself */}
-      <article
-        className="card relative overflow-hidden p-6 sm:p-10"
-        style={getPaperBackground(entry.paperStyle)}
-      >
+      <div className="relative">
+        <EntryCharm value={entry.decoration} />
+        <article
+          className="card relative overflow-hidden p-6 sm:p-10"
+          style={getPaperBackground(entry.paperStyle)}
+        >
         <Flower className="pointer-events-none absolute -right-2 -top-2 h-16 w-16 text-[rgb(var(--accent))] opacity-25" />
 
         <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -364,7 +367,8 @@ export default function JournalView() {
             )}
           </>
         )}
-      </article>
+        </article>
+      </div>
 
       <PasswordModal
         open={modalOpen}

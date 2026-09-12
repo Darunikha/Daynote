@@ -3,6 +3,8 @@ import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
 import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound, Hourglass, Mic } from 'lucide-react';
 import MoodSelector from '../components/MoodSelector';
 import PaperStylePicker from '../components/PaperStylePicker';
+import DecorationPicker from '../components/DecorationPicker';
+import EntryCharm from '../components/EntryCharm';
 import { getPaperBackground } from '../utils/paperStyles';
 import VoiceRecorder from '../components/VoiceRecorder';
 import { Spinner, SkeletonLines } from '../components/Loading';
@@ -21,6 +23,7 @@ const EMPTY = {
   content: '',
   mood: 'neutral',
   paperStyle: 'plain',
+  decoration: 'none',
   tags: [],
   date: toDateInput(),
   isFavorite: false,
@@ -99,6 +102,7 @@ export default function JournalEditor() {
           content: e.content,
           mood: e.mood,
           paperStyle: e.paperStyle || 'plain',
+          decoration: e.decoration || 'none',
           tags: e.tags || [],
           date: toDateInput(e.date),
           isFavorite: e.isFavorite,
@@ -251,8 +255,9 @@ export default function JournalEditor() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
-        {/* Writing area — previews the selected paper style live */}
-        <div className="card p-5 sm:p-6" style={getPaperBackground(form.paperStyle)}>
+        {/* Writing area — previews the selected paper style + decoration live */}
+        <div className="card relative p-5 sm:p-6" style={getPaperBackground(form.paperStyle)}>
+          <EntryCharm value={form.decoration} />
           <label htmlFor="title" className="sr-only">
             Title
           </label>
@@ -313,6 +318,14 @@ export default function JournalEditor() {
             <PaperStylePicker
               value={form.paperStyle}
               onChange={(style) => update({ paperStyle: style })}
+            />
+          </section>
+
+          <section className="card p-5">
+            <h2 className="mb-3 font-serif text-base">Card Decoration</h2>
+            <DecorationPicker
+              value={form.decoration}
+              onChange={(decoration) => update({ decoration })}
             />
           </section>
 

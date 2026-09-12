@@ -58,6 +58,24 @@ const PAPER_STYLES = [
   'minimal-paper',
 ];
 
+// Keep in sync with frontend/src/utils/decorations.js
+const DECORATIONS = [
+  'none',
+  'paper-clip',
+  'washi-tape',
+  'tiny-flower',
+  'heart',
+  'star',
+  'butterfly',
+  'postage-stamp',
+  'tiny-tag',
+  'pressed-leaf',
+  'tiny-bow',
+  'doodle',
+  'pin',
+  'photo-corner',
+];
+
 const journalSchema = new mongoose.Schema(
   {
     userId: {
@@ -74,6 +92,7 @@ const journalSchema = new mongoose.Schema(
     },
     mood: { type: String, enum: MOODS, default: 'neutral' },
     paperStyle: { type: String, enum: PAPER_STYLES, default: 'plain' },
+    decoration: { type: String, enum: DECORATIONS, default: 'none' },
     tags: {
       type: [String],
       default: [],
@@ -115,4 +134,5 @@ journalSchema.index({ userId: 1, date: -1 });
 module.exports = mongoose.model('Journal', journalSchema);
 module.exports.MOODS = MOODS;
 module.exports.PAPER_STYLES = PAPER_STYLES;
+module.exports.DECORATIONS = DECORATIONS;
 
