@@ -5,6 +5,7 @@ import MoodSelector from '../components/MoodSelector';
 import PaperStylePicker from '../components/PaperStylePicker';
 import DecorationPicker from '../components/DecorationPicker';
 import EntryCharm from '../components/EntryCharm';
+import JournalPrompt from '../components/JournalPrompt';
 import { getPaperBackground } from '../utils/paperStyles';
 import VoiceRecorder from '../components/VoiceRecorder';
 import { Spinner, SkeletonLines } from '../components/Loading';
@@ -16,7 +17,7 @@ import { getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { toDateInput } from '../utils/format';
 
-const SUGGESTED_TAGS = ['gratitude', 'self care', 'study', 'friends', 'work', 'family'];
+const SUGGESTED_TAGS = ['personal', 'work', 'college', 'memories', 'travel', 'ideas'];
 
 const EMPTY = {
   title: '',
@@ -270,6 +271,8 @@ export default function JournalEditor() {
             className="input mb-4 !border-transparent !bg-transparent !px-0 font-serif !text-2xl focus:!shadow-none"
             style={{ color: 'rgb(var(--heading))' }}
           />
+
+          {!isEdit && <JournalPrompt />}
 
           <label htmlFor="content" className="sr-only">
             Your entry
