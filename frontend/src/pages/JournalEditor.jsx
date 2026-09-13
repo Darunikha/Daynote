@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound, Hourglass, Mic } from 'lucide-react';
+import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound, Hourglass, Mic, Ban } from 'lucide-react';
 import MoodSelector from '../components/MoodSelector';
 import PaperStylePicker from '../components/PaperStylePicker';
 import DecorationPicker from '../components/DecorationPicker';
+import PopoverPanel from '../components/PopoverPanel';
 import EntryCharm from '../components/EntryCharm';
 import JournalPrompt from '../components/JournalPrompt';
-import { getPaperBackground } from '../utils/paperStyles';
+import { getPaperBackground, getPaperStyleMeta } from '../utils/paperStyles';
+import { getDecoration } from '../utils/decorations';
 import VoiceRecorder from '../components/VoiceRecorder';
 import { Spinner, SkeletonLines } from '../components/Loading';
 import { SprigLeft, TapedNote } from '../components/Botanical';
@@ -210,6 +212,8 @@ export default function JournalEditor() {
     );
   }
 
+  const currentDecoration = getDecoration(form.decoration);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -255,9 +259,59 @@ export default function JournalEditor() {
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
-        {/* Writing area — previews the selected paper style + decoration live */}
-        <div className="card relative p-5 sm:p-6" style={getPaperBackground(form.paperStyle)}>
+      {/* Compact customization toolbar: mood + paper style + decoration, kept
+          out of the way so the writing card stays the focal point. */}
+      <div className="card flex flex-wrap items-center gap-x-4 gap-y-3 p-3 sm:px-4">
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-medium uppercase tracking-wide" style={{ color: 'rgb(var(--text-muted))' }}>
+            Mood
+          </span>
+          <MoodSelector value={form.mood} onChange={(m) => update({ mood: m || 'neutral' })} size="xs" />
+        </div>
+
+        <div className="hidden h-8 w-px sm:block" style={{ backgroundColor: 'rgb(var(--border))' }} />
+
+        <PopoverPanel
+          label="Entry Style"
+          valueLabel={getPaperStyleMeta(form.paperStyle).label}
+          preview={
+            <span
+              className="h-6 w-6 shrink-0 rounded-md border"
+              style={{ borderColor: 'rgb(var(--border))', ...getPaperBackground(form.paperStyle) }}
+              aria-hidden="true"
+            />
+          }
+        >
+          <PaperStylePicker value={form.paperStyle} onChange={(style) => update({ paperStyle: style })} />
+        </PopoverPanel>
+
+        <PopoverPanel
+          label="Decoration"
+          valueLabel={currentDecoration.label}
+          preview={
+            <span
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+              style={{ backgroundColor: 'rgb(var(--surface-alt))' }}
+              aria-hidden="true"
+            >
+              {currentDecoration.Charm ? (
+                <currentDecoration.Charm className="h-3.5 w-3.5" />
+              ) : (
+                <Ban size={13} style={{ color: 'rgb(var(--text-muted))' }} />
+              )}
+            </span>
+          }
+        >
+          <DecorationPicker value={form.decoration} onChange={(decoration) => update({ decoration })} />
+        </PopoverPanel>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+        {/* Writing area — the focal point of the page */}
+        <div
+          className="card relative flex flex-col p-5 sm:p-8 lg:min-h-[70vh]"
+          style={getPaperBackground(form.paperStyle)}
+        >
           <EntryCharm value={form.decoration} />
           <label htmlFor="title" className="sr-only">
             Title
@@ -268,7 +322,7 @@ export default function JournalEditor() {
             onChange={(e) => update({ title: e.target.value })}
             placeholder="Title (optional)"
             maxLength={140}
-            className="input mb-4 !border-transparent !bg-transparent !px-0 font-serif !text-2xl focus:!shadow-none"
+            className="input mb-4 shrink-0 !border-transparent !bg-transparent !px-0 font-serif !text-2xl focus:!shadow-none sm:!text-3xl"
             style={{ color: 'rgb(var(--heading))' }}
           />
 
@@ -283,13 +337,12 @@ export default function JournalEditor() {
             value={form.content}
             onChange={(e) => update({ content: e.target.value })}
             placeholder={'How are you feeling today? Write anything…\nIt can be big or small, happy or sad.'}
-            rows={16}
-            className="paper-lines w-full resize-y bg-transparent text-[15px] leading-8 outline-none placeholder:opacity-60"
+            className="paper-lines w-full min-h-[360px] flex-1 resize-y bg-transparent text-[15px] leading-8 outline-none placeholder:opacity-60"
             style={{ color: 'rgb(var(--text))' }}
           />
 
           {/* Toolbar row: emoji picker + word/character count */}
-          <div className="mt-3 flex items-center justify-between gap-2 mb-4">
+          <div className="mt-3 flex shrink-0 items-center justify-between gap-2 mb-4">
             <EmojiPicker onEmojiSelect={insertEmoji} />
             <p className="muted text-xs tabular-nums">
               {form.content.trim() ? form.content.trim().split(/\s+/).length : 0} words
@@ -299,7 +352,7 @@ export default function JournalEditor() {
           </div>
 
           {/* Voice Note Recorder */}
-          <div className="mt-6 border-t border-stone-200 dark:border-stone-800 pt-5">
+          <div className="mt-6 shrink-0 border-t border-stone-200 dark:border-stone-800 pt-5">
             <VoiceRecorder
               audioUrl={form.audioUrl}
               audioTranscript={form.audioTranscript}
@@ -309,29 +362,8 @@ export default function JournalEditor() {
           </div>
         </div>
 
-        {/* Side panel */}
-        <div className="space-y-5">
-          <section className="card p-5">
-            <h2 className="mb-3 font-serif text-base">Today&apos;s Mood</h2>
-            <MoodSelector value={form.mood} onChange={(m) => update({ mood: m || 'neutral' })} size="sm" />
-          </section>
-
-          <section className="card p-5">
-            <h2 className="mb-3 font-serif text-base">Entry Style</h2>
-            <PaperStylePicker
-              value={form.paperStyle}
-              onChange={(style) => update({ paperStyle: style })}
-            />
-          </section>
-
-          <section className="card p-5">
-            <h2 className="mb-3 font-serif text-base">Card Decoration</h2>
-            <DecorationPicker
-              value={form.decoration}
-              onChange={(decoration) => update({ decoration })}
-            />
-          </section>
-
+        {/* Side panel — the remaining, less-frequently-touched settings */}
+        <div className="space-y-4">
           <section className="card p-5">
             <label htmlFor="date" className="label">
               Date

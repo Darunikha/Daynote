@@ -6,6 +6,35 @@ import { MOODS } from '../utils/moods';
  */
 export default function MoodSelector({ value, onChange, size = 'md', className = '' }) {
   const compact = size === 'sm';
+  const tiny = size === 'xs';
+
+  if (tiny) {
+    return (
+      <div role="radiogroup" aria-label="How are you feeling?" className={`flex flex-wrap gap-1 ${className}`}>
+        {MOODS.map((mood) => {
+          const active = value === mood.value;
+          return (
+            <button
+              key={mood.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              aria-label={mood.label}
+              title={mood.label}
+              onClick={() => onChange(active ? '' : mood.value)}
+              className="flex h-7 w-7 items-center justify-center rounded-full text-sm transition-transform duration-150 hover:-translate-y-0.5"
+              style={{
+                backgroundColor: mood.soft,
+                boxShadow: active ? `0 0 0 2px ${mood.color}` : `inset 0 0 0 1px ${mood.color}55`,
+              }}
+            >
+              <span aria-hidden="true">{mood.emoji}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div
