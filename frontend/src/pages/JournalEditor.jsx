@@ -26,7 +26,7 @@ const EMPTY = {
   content: '',
   mood: 'neutral',
   paperStyle: 'plain',
-  decoration: 'none',
+  decorations: [],
   tags: [],
   date: toDateInput(),
   isFavorite: false,
@@ -105,7 +105,7 @@ export default function JournalEditor() {
           content: e.content,
           mood: e.mood,
           paperStyle: e.paperStyle || 'plain',
-          decoration: e.decoration || 'none',
+          decorations: e.decorations || [],
           tags: e.tags || [],
           date: toDateInput(e.date),
           isFavorite: e.isFavorite,
@@ -212,7 +212,13 @@ export default function JournalEditor() {
     );
   }
 
-  const currentDecoration = getDecoration(form.decoration);
+  const decorationLabel =
+    form.decorations.length === 0
+      ? 'None'
+      : form.decorations.length === 1
+      ? getDecoration(form.decorations[0]).label
+      : `${form.decorations.length} charms`;
+  const firstDecoration = form.decorations[0] ? getDecoration(form.decorations[0]) : null;
 
   return (
     <div className="space-y-6">
@@ -287,22 +293,30 @@ export default function JournalEditor() {
 
         <PopoverPanel
           label="Decoration"
-          valueLabel={currentDecoration.label}
+          valueLabel={decorationLabel}
           preview={
             <span
-              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+              className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
               style={{ backgroundColor: 'rgb(var(--surface-alt))' }}
               aria-hidden="true"
             >
-              {currentDecoration.Charm ? (
-                <currentDecoration.Charm className="h-3.5 w-3.5" />
+              {firstDecoration?.Charm ? (
+                <firstDecoration.Charm className="h-3.5 w-3.5" />
               ) : (
                 <Ban size={13} style={{ color: 'rgb(var(--text-muted))' }} />
+              )}
+              {form.decorations.length > 1 && (
+                <span
+                  className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-bold"
+                  style={{ backgroundColor: 'rgb(var(--accent))', color: '#4A3038' }}
+                >
+                  +{form.decorations.length - 1}
+                </span>
               )}
             </span>
           }
         >
-          <DecorationPicker value={form.decoration} onChange={(decoration) => update({ decoration })} />
+          <DecorationPicker values={form.decorations} onChange={(decorations) => update({ decorations })} />
         </PopoverPanel>
       </div>
 
@@ -312,7 +326,7 @@ export default function JournalEditor() {
           className="card relative flex flex-col p-5 sm:p-8 lg:min-h-[70vh]"
           style={getPaperBackground(form.paperStyle)}
         >
-          <EntryCharm value={form.decoration} />
+          <EntryCharm values={form.decorations} />
           <label htmlFor="title" className="sr-only">
             Title
           </label>

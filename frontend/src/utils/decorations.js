@@ -156,6 +156,9 @@ export const DECORATIONS = [
   },
 ];
 
+/** How many charms a single entry can wear at once, so a card stays readable. */
+export const MAX_DECORATIONS = 6;
+
 export const DECORATION_VALUES = DECORATIONS.map((d) => d.value);
 
 const DECORATION_MAP = Object.fromEntries(DECORATIONS.map((d) => [d.value, d]));

@@ -213,7 +213,7 @@ export default function JournalView() {
 
       {/* The entry itself */}
       <div className="relative">
-        <EntryCharm value={entry.decoration} />
+        <EntryCharm values={entry.decorations} />
         <article
           className="card relative overflow-hidden p-6 sm:p-10"
           style={getPaperBackground(entry.paperStyle)}

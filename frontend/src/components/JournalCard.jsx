@@ -44,7 +44,7 @@ export default function JournalCard({
       }`}
       style={getPaperBackground(entry.paperStyle)}
     >
-      <EntryCharm value={entry.decoration} />
+      <EntryCharm values={entry.decorations} />
       {/* Header row: date + actions */}
       <div className="mb-2 flex items-start justify-between gap-3">
         <time

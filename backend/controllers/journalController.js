@@ -1,9 +1,23 @@
 const Journal = require('../models/Journal');
-const { MOODS, PAPER_STYLES, DECORATIONS } = require('../models/Journal');
+const { MOODS, PAPER_STYLES, DECORATIONS, MAX_DECORATIONS } = require('../models/Journal');
 const { ok, fail, asyncHandler } = require('../utils/response');
 
 /** Every query is locked to the signed-in user, so entries can never leak across accounts. */
 const scoped = (req, extra = {}) => ({ userId: req.user._id, ...extra });
+
+/**
+ * Entries saved before multi-charm support only have the old singular
+ * `decoration` field. Fold it into `decorations` on the way out so old
+ * entries still show their charm without needing a data migration.
+ */
+const withDecorations = (obj) => {
+  if ((!obj.decorations || obj.decorations.length === 0) && obj.decoration && obj.decoration !== 'none') {
+    obj.decorations = [obj.decoration];
+  } else if (!obj.decorations) {
+    obj.decorations = [];
+  }
+  return obj;
+};
 
 /** Escapes user input so a search term is matched literally, not as a pattern. */
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -46,6 +60,7 @@ const getJournals = asyncHandler(async (req, res) => {
   ]);
 
   const sanitizedEntries = entries.map((entry) => {
+    entry = withDecorations(entry);
     const isCapsuleLocked =
       Boolean(entry.isTimeCapsule) && Boolean(entry.unlockDate) && new Date(entry.unlockDate) > new Date();
 
@@ -156,7 +171,7 @@ const getJournal = asyncHandler(async (req, res) => {
       unlocked = await entry.matchLockPassword(passwordHeader);
     }
     if (!unlocked) {
-      const masked = entry.toObject();
+      const masked = withDecorations(entry.toObject());
       delete masked.lockPassword;
       masked.content = '🔒 This entry is password protected.';
       masked.imageUrl = '';
@@ -168,7 +183,7 @@ const getJournal = asyncHandler(async (req, res) => {
     }
   }
 
-  const obj = entry.toObject();
+  const obj = withDecorations(entry.toObject());
   delete obj.lockPassword;
   obj.isCapsuleLocked = isCapsuleLocked;
 
@@ -193,7 +208,11 @@ const pickBody = (body) => {
   if (body.content !== undefined) out.content = body.content;
   if (body.mood !== undefined) out.mood = body.mood;
   if (body.paperStyle !== undefined) out.paperStyle = body.paperStyle;
-  if (body.decoration !== undefined) out.decoration = body.decoration;
+  if (body.decorations !== undefined) {
+    out.decorations = [
+      ...new Set((Array.isArray(body.decorations) ? body.decorations : []).filter((d) => d && d !== 'none')),
+    ].slice(0, MAX_DECORATIONS);
+  }
   if (body.tags !== undefined) {
     out.tags = Array.isArray(body.tags)
       ? body.tags
@@ -225,8 +244,8 @@ const createJournal = asyncHandler(async (req, res) => {
   if (payload.paperStyle && !PAPER_STYLES.includes(payload.paperStyle)) {
     return fail(res, 'That paper style is not one we recognise', 400);
   }
-  if (payload.decoration && !DECORATIONS.includes(payload.decoration)) {
-    return fail(res, 'That decoration is not one we recognise', 400);
+  if (payload.decorations && payload.decorations.some((d) => !DECORATIONS.includes(d))) {
+    return fail(res, 'One of those decorations is not one we recognise', 400);
   }
 
   const entry = new Journal({ ...payload, userId: req.user._id });
@@ -258,8 +277,8 @@ const updateJournal = asyncHandler(async (req, res) => {
   if (payload.paperStyle && !PAPER_STYLES.includes(payload.paperStyle)) {
     return fail(res, 'That paper style is not one we recognise', 400);
   }
-  if (payload.decoration && !DECORATIONS.includes(payload.decoration)) {
-    return fail(res, 'That decoration is not one we recognise', 400);
+  if (payload.decorations && payload.decorations.some((d) => !DECORATIONS.includes(d))) {
+    return fail(res, 'One of those decorations is not one we recognise', 400);
   }
 
   const entry = await Journal.findOne(scoped(req, { _id: req.params.id })).select('+lockPassword');
@@ -420,6 +439,7 @@ const getOnThisDay = asyncHandler(async (req, res) => {
 
   // 3. Format entries and calculate relative time label
   const sanitized = results.map((entry) => {
+    entry = withDecorations(entry);
     const entryDate = new Date(entry.date);
     const yearsDiff = targetYear - entryDate.getFullYear();
     const monthsDiff =

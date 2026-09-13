@@ -76,6 +76,10 @@ const DECORATIONS = [
   'photo-corner',
 ];
 
+// How many charms a single entry can wear at once — keep in sync with
+// frontend/src/utils/decorations.js MAX_DECORATIONS.
+const MAX_DECORATIONS = 6;
+
 const journalSchema = new mongoose.Schema(
   {
     userId: {
@@ -92,7 +96,18 @@ const journalSchema = new mongoose.Schema(
     },
     mood: { type: String, enum: MOODS, default: 'neutral' },
     paperStyle: { type: String, enum: PAPER_STYLES, default: 'plain' },
+    // Legacy single-charm field, kept only so entries saved before multi-charm
+    // support still read back correctly (see withDecorations in the controller).
     decoration: { type: String, enum: DECORATIONS, default: 'none' },
+    decorations: {
+      type: [{ type: String, enum: DECORATIONS }],
+      default: [],
+      set: (values) =>
+        [...new Set((Array.isArray(values) ? values : []).filter((v) => v && v !== 'none'))].slice(
+          0,
+          MAX_DECORATIONS
+        ),
+    },
     tags: {
       type: [String],
       default: [],
@@ -135,4 +150,5 @@ module.exports = mongoose.model('Journal', journalSchema);
 module.exports.MOODS = MOODS;
 module.exports.PAPER_STYLES = PAPER_STYLES;
 module.exports.DECORATIONS = DECORATIONS;
+module.exports.MAX_DECORATIONS = MAX_DECORATIONS;
 
