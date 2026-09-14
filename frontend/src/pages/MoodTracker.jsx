@@ -1,14 +1,30 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import Calendar from '../components/Calendar';
+import MoodSelector from '../components/MoodSelector';
 import { MoodDonut, MoodBars, MoodLegend } from '../components/MoodChart';
 import { SkeletonLines } from '../components/Loading';
 import EmptyState from '../components/EmptyState';
 import { TapedNote, SprigLeft } from '../components/Botanical';
 import journalService from '../services/journalService';
+import moodService from '../services/moodService';
 import { getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { getMood, moodInsight } from '../utils/moods';
-import { MONTH_NAMES, startOfMonth, endOfMonth } from '../utils/format';
+import { MONTH_NAMES, startOfMonth, endOfMonth, toDateInput } from '../utils/format';
+
+/** Adds two {mood,count}[] distributions together and recomputes percent/topMood. */
+const mergeDistributions = (a = [], b = []) => {
+  const counts = {};
+  [...a, ...b].forEach(({ mood, count }) => {
+    counts[mood] = (counts[mood] || 0) + count;
+  });
+  const total = Object.values(counts).reduce((sum, c) => sum + c, 0);
+  const distribution = Object.entries(counts)
+    .map(([mood, count]) => ({ mood, count, percent: total ? Math.round((count / total) * 100) : 0 }))
+    .sort((x, y) => y.count - x.count);
+  return { distribution, topMood: distribution[0]?.count ? distribution[0].mood : null, countedInRange: total };
+};
 
 export default function MoodTracker() {
   const toast = useToast();
@@ -17,8 +33,11 @@ export default function MoodTracker() {
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
   const [entries, setEntries] = useState([]);
+  const [moodCheckins, setMoodCheckins] = useState([]);
   const [stats, setStats] = useState(null);
+  const [todayMood, setTodayMood] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [checkingIn, setCheckingIn] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -26,12 +45,17 @@ export default function MoodTracker() {
     const to = endOfMonth(new Date(year, month, 1)).toISOString();
 
     try {
-      const [list, statsRes] = await Promise.all([
+      const [list, journalStats, moods, moodStats, todayRes] = await Promise.all([
         journalService.list({ from, to, limit: 60 }),
         journalService.stats({ from, to }),
+        moodService.list({ from, to }),
+        moodService.stats({ from, to }),
+        moodService.today(),
       ]);
       setEntries(list.data.entries);
-      setStats(statsRes.data);
+      setMoodCheckins(moods.data.moods);
+      setStats(mergeDistributions(journalStats.data.distribution, moodStats.data.distribution));
+      setTodayMood(todayRes.data.mood);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -43,6 +67,22 @@ export default function MoodTracker() {
     load();
   }, [load]);
 
+  const recordMood = async (mood) => {
+    if (!mood || checkingIn) return;
+    setCheckingIn(true);
+    try {
+      const res = await moodService.checkIn({ mood, date: toDateInput() });
+      setTodayMood(res.data.mood);
+      toast.success('Mood recorded');
+      load();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setCheckingIn(false);
+    }
+  };
+
+  /** Standalone check-ins take priority over a journal entry's mood for that day. */
   const entriesByDay = useMemo(() => {
     const map = {};
     entries.forEach((e) => {
@@ -50,21 +90,41 @@ export default function MoodTracker() {
       const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
       (map[key] ||= []).push(e);
     });
+    moodCheckins.forEach((m) => {
+      const d = new Date(m.date);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      map[key] = [{ mood: m.mood }, ...(map[key] || [])];
+    });
     return map;
-  }, [entries]);
+  }, [entries, moodCheckins]);
 
   const hasData = Boolean(stats?.countedInRange);
   const top = stats?.topMood ? getMood(stats.topMood) : null;
-  const daysWritten = Object.keys(entriesByDay).length;
+  const daysNoted = Object.keys(entriesByDay).length;
+  const todayMoodMeta = todayMood ? getMood(todayMood.mood) : null;
 
   return (
     <div className="space-y-6">
       <header>
         <h1 className="font-serif text-3xl">Mood Tracker</h1>
         <p className="muted mt-1 text-sm">
-          Your mood this month — no scores, no streaks to chase.
+          Check in whenever you like — no scores, no streaks to chase.
         </p>
       </header>
+
+      {/* Daily check-in — the main purpose of this page */}
+      <section className="card relative overflow-hidden p-5 sm:p-6">
+        <h2 className="mb-1 font-serif text-lg flex items-center gap-2">
+          <Sparkles size={16} className="text-[rgb(var(--accent))]" aria-hidden="true" />
+          How are you feeling today?
+        </h2>
+        <p className="muted mb-4 text-sm">
+          {todayMoodMeta
+            ? `You're feeling ${todayMoodMeta.label.toLowerCase()} today. Tap another mood to update it.`
+            : 'Pick whatever fits right now — you can change it later today.'}
+        </p>
+        <MoodSelector value={todayMood?.mood || ''} onChange={recordMood} />
+      </section>
 
       {/* items-start keeps the calendar card its natural height instead of
           stretching it to match the taller insights column. */}
@@ -88,7 +148,7 @@ export default function MoodTracker() {
 
           {!loading && (
             <p className="muted mt-5 border-t pt-4 text-xs leading-relaxed">
-              You wrote on {daysWritten} {daysWritten === 1 ? 'day' : 'days'} in{' '}
+              You noted a mood on {daysNoted} {daysNoted === 1 ? 'day' : 'days'} in{' '}
               {MONTH_NAMES[month]}.
             </p>
           )}
@@ -103,7 +163,7 @@ export default function MoodTracker() {
               <SkeletonLines lines={4} />
             ) : !hasData ? (
               <p className="muted text-sm leading-relaxed">
-                Nothing written this month yet. Once you do, your moods will gather here.
+                Nothing noted this month yet. Check in above and your moods will gather here.
               </p>
             ) : (
               <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
@@ -145,8 +205,8 @@ export default function MoodTracker() {
       {!loading && !hasData && (
         <EmptyState
           title="No moods to show for this month."
-          description="Write an entry and pick how the day felt — the rest fills itself in."
-          actionLabel="Write an entry"
+          description="Check in above whenever you like — the rest fills itself in."
+          actionLabel="Write an entry instead"
           actionTo="/journal/new"
         />
       )}

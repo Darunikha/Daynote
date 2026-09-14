@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { PenLine, CalendarDays, HeartPulse, ArrowRight, Star, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { PenLine, CalendarDays, HeartPulse, ArrowRight, Star } from 'lucide-react';
 import JournalCard from '../components/JournalCard';
 import MemoryLaneCard from '../components/MemoryLaneCard';
-import MoodSelector from '../components/MoodSelector';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import { WeekStrip } from '../components/MoodChart';
@@ -24,13 +23,11 @@ const QUICK_ACTIONS = [
 export default function Dashboard() {
   const { user } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
 
   const [entries, setEntries] = useState([]);
   const [stats, setStats] = useState(null);
   const [memories, setMemories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [quickMood, setQuickMood] = useState('');
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -104,12 +101,6 @@ export default function Dashboard() {
     }
   };
 
-  /** Picking a mood on the dashboard opens the editor with it pre-filled. */
-  const startFromMood = (mood) => {
-    setQuickMood(mood);
-    if (mood) navigate(`/journal/new?mood=${mood}`);
-  };
-
   return (
     <div className="space-y-8">
       {/* Greeting */}
@@ -128,7 +119,10 @@ export default function Dashboard() {
             </h1>
 
             <p className="muted mt-4 text-sm">How was your day today?</p>
-            <MoodSelector value={quickMood} onChange={startFromMood} className="mt-3" />
+            <Link to="/mood" className="btn btn-olive mt-3 !w-auto !rounded-full !px-5">
+              <HeartPulse size={15} aria-hidden="true" />
+              Check in on your mood
+            </Link>
           </div>
 
           <div className="hidden pt-4 lg:block">

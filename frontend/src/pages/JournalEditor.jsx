@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
 import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound, Hourglass, Mic, Ban } from 'lucide-react';
-import MoodSelector from '../components/MoodSelector';
 import PaperStylePicker from '../components/PaperStylePicker';
 import DecorationPicker from '../components/DecorationPicker';
 import PopoverPanel from '../components/PopoverPanel';
@@ -24,7 +23,6 @@ const SUGGESTED_TAGS = ['personal', 'work', 'college', 'memories', 'travel', 'id
 const EMPTY = {
   title: '',
   content: '',
-  mood: 'neutral',
   paperStyle: 'plain',
   decorations: [],
   tags: [],
@@ -45,11 +43,9 @@ export default function JournalEditor() {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // A new entry can be pre-filled from the dashboard mood picker or from a
-  // date clicked in the calendar.
+  // A new entry can be pre-filled from a date clicked in the calendar.
   const [form, setForm] = useState(() => ({
     ...EMPTY,
-    mood: params.get('mood') || EMPTY.mood,
     date: params.get('date') || EMPTY.date,
   }));
   const [lockPassword, setLockPassword] = useState('');
@@ -103,7 +99,6 @@ export default function JournalEditor() {
         setForm({
           title: e.title === 'Untitled entry' ? '' : e.title,
           content: e.content,
-          mood: e.mood,
           paperStyle: e.paperStyle || 'plain',
           decorations: e.decorations || [],
           tags: e.tags || [],
@@ -265,18 +260,10 @@ export default function JournalEditor() {
         </div>
       </header>
 
-      {/* Compact customization toolbar: mood + paper style + decoration, kept
-          out of the way so the writing card stays the focal point. */}
+      {/* Compact customization toolbar: paper style + decoration, kept out of
+          the way so the writing card stays the focal point. Mood is recorded
+          separately, from the Mood Tracker page only. */}
       <div className="card flex flex-wrap items-center gap-x-4 gap-y-3 p-3 sm:px-4">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-medium uppercase tracking-wide" style={{ color: 'rgb(var(--text-muted))' }}>
-            Mood
-          </span>
-          <MoodSelector value={form.mood} onChange={(m) => update({ mood: m || 'neutral' })} size="xs" />
-        </div>
-
-        <div className="hidden h-8 w-px sm:block" style={{ backgroundColor: 'rgb(var(--border))' }} />
-
         <PopoverPanel
           label="Entry Style"
           valueLabel={getPaperStyleMeta(form.paperStyle).label}
@@ -320,10 +307,10 @@ export default function JournalEditor() {
         </PopoverPanel>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
         {/* Writing area — the focal point of the page */}
         <div
-          className="card relative flex flex-col p-5 sm:p-8 lg:min-h-[70vh]"
+          className="card relative flex flex-col p-6 sm:p-10 lg:min-h-[78vh]"
           style={getPaperBackground(form.paperStyle)}
         >
           <EntryCharm values={form.decorations} />
@@ -350,7 +337,7 @@ export default function JournalEditor() {
             ref={contentRef}
             value={form.content}
             onChange={(e) => update({ content: e.target.value })}
-            placeholder={'How are you feeling today? Write anything…\nIt can be big or small, happy or sad.'}
+            placeholder={'Start writing whatever comes to mind…\nIt can be big or small, happy or sad.'}
             className="paper-lines w-full min-h-[360px] flex-1 resize-y bg-transparent text-[15px] leading-8 outline-none placeholder:opacity-60"
             style={{ color: 'rgb(var(--text))' }}
           />
@@ -377,9 +364,9 @@ export default function JournalEditor() {
         </div>
 
         {/* Side panel — the remaining, less-frequently-touched settings */}
-        <div className="space-y-4">
-          <section className="card p-5">
-            <label htmlFor="date" className="label">
+        <div className="space-y-3">
+          <section className="card p-4">
+            <label htmlFor="date" className="label !mb-1 !text-[11px]">
               Date
             </label>
             <input
@@ -388,14 +375,14 @@ export default function JournalEditor() {
               value={form.date}
               max={toDateInput()}
               onChange={(e) => update({ date: e.target.value })}
-              className="input"
+              className="input !py-2 !text-sm"
             />
           </section>
 
           {/* Time Capsule section */}
-          <section className="card p-5">
-            <h2 className="mb-2 font-serif text-base flex items-center gap-2">
-              <Hourglass size={16} className="text-amber-600 dark:text-amber-400" />
+          <section className="card p-4">
+            <h2 className="mb-2 font-serif text-sm flex items-center gap-1.5">
+              <Hourglass size={14} className="text-amber-600 dark:text-amber-400" />
               Time Capsule
             </h2>
             <div className="space-y-3">
@@ -438,9 +425,9 @@ export default function JournalEditor() {
           </section>
 
           {/* Password Protection section */}
-          <section className="card p-5">
-            <h2 className="mb-2 font-serif text-base flex items-center gap-2">
-              <KeyRound size={16} className="text-[rgb(var(--brandy))]" />
+          <section className="card p-4">
+            <h2 className="mb-2 font-serif text-sm flex items-center gap-1.5">
+              <KeyRound size={14} className="text-[rgb(var(--brandy))]" />
               Password Lock
             </h2>
             {isLocked ? (
@@ -472,8 +459,8 @@ export default function JournalEditor() {
             )}
           </section>
 
-          <section className="card p-5">
-            <h2 className="mb-3 font-serif text-base">Tags</h2>
+          <section className="card p-4">
+            <h2 className="mb-2 font-serif text-sm">Tags</h2>
 
             {form.tags.length > 0 && (
               <ul className="mb-3 flex flex-wrap gap-2">
@@ -531,8 +518,8 @@ export default function JournalEditor() {
           </section>
 
           {/* Image upload — only shown when the server supports it */}
-          <section className="card p-5">
-            <h2 className="mb-3 font-serif text-base">Photo</h2>
+          <section className="card p-4">
+            <h2 className="mb-2 font-serif text-sm">Photo</h2>
 
             {form.imageUrl ? (
               <div className="relative">
