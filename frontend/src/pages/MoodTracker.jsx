@@ -5,7 +5,8 @@ import MoodSelector from '../components/MoodSelector';
 import { MoodDonut, MoodBars, MoodLegend } from '../components/MoodChart';
 import { SkeletonLines } from '../components/Loading';
 import EmptyState from '../components/EmptyState';
-import { TapedNote, SprigLeft } from '../components/Botanical';
+import { TapedNote, SprigLeft, Flower } from '../components/Botanical';
+import { WashiTapeCharm } from '../components/Charms';
 import journalService from '../services/journalService';
 import moodService from '../services/moodService';
 import { getErrorMessage } from '../services/api';
@@ -105,23 +106,31 @@ export default function MoodTracker() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="font-serif text-3xl">Mood Tracker</h1>
-        <p className="muted mt-1 text-sm">
-          Check in whenever you like — no scores, no streaks to chase.
-        </p>
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-serif text-3xl">Mood Tracker</h1>
+          <p className="muted mt-1 text-sm">
+            A little page for how you're doing — no scores, no streaks to chase.
+          </p>
+        </div>
+        <Flower className="hidden h-10 w-10 shrink-0 text-[rgb(var(--accent))] opacity-50 sm:block" />
       </header>
 
-      {/* Daily check-in — the main purpose of this page */}
-      <section className="card relative overflow-hidden p-5 sm:p-6">
-        <h2 className="mb-1 font-serif text-lg flex items-center gap-2">
-          <Sparkles size={16} className="text-[rgb(var(--accent))]" aria-hidden="true" />
+      {/* Daily check-in — the main purpose of this page, styled like a little
+          journal check-in rather than a dashboard widget. */}
+      <section className="card relative overflow-visible p-5 pt-7 sm:p-6 sm:pt-8">
+        <span className="absolute -top-2.5 left-7 -rotate-6" aria-hidden="true">
+          <WashiTapeCharm className="h-5 w-14" />
+        </span>
+
+        <h2 className="mb-1 flex items-center gap-1.5 font-hand text-2xl" style={{ color: 'rgb(var(--heading))' }}>
+          <Sparkles size={15} className="text-[rgb(var(--accent))]" aria-hidden="true" />
           How are you feeling today?
         </h2>
         <p className="muted mb-4 text-sm">
           {todayMoodMeta
-            ? `You're feeling ${todayMoodMeta.label.toLowerCase()} today. Tap another mood to update it.`
-            : 'Pick whatever fits right now — you can change it later today.'}
+            ? `You're feeling ${todayMoodMeta.label.toLowerCase()} today — tap another sticker to change it.`
+            : 'Pick whatever sticker fits right now, no need to overthink it.'}
         </p>
         <MoodSelector value={todayMood?.mood || ''} onChange={recordMood} />
       </section>
@@ -170,9 +179,13 @@ export default function MoodTracker() {
                 <div className="relative shrink-0">
                   <MoodDonut distribution={stats.distribution} />
                   <span className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="muted text-[10px] uppercase tracking-wider">Mostly</span>
-                    <span className="font-serif text-lg leading-tight" style={{ color: 'rgb(var(--heading))' }}>
-                      {top?.label}
+                    {top?.Icon && (
+                      <span className="mb-0.5 h-8 w-8" aria-hidden="true">
+                        <top.Icon className="h-full w-full" />
+                      </span>
+                    )}
+                    <span className="font-serif text-base leading-tight" style={{ color: 'rgb(var(--heading))' }}>
+                      Mostly {top?.label}
                     </span>
                     <span className="muted text-[10px]">this month</span>
                   </span>

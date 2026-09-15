@@ -108,8 +108,8 @@ export default function Calendar({
                       }}
                     >
                       {showMoodFill && mood ? (
-                        <span aria-hidden="true" className="text-base leading-none sm:text-lg">
-                          {mood.emoji}
+                        <span aria-hidden="true" className="flex h-6 w-6 items-center justify-center sm:h-7 sm:w-7">
+                          <mood.Icon className="h-full w-full" />
                         </span>
                       ) : (
                         <span className={isToday ? 'font-semibold' : ''}>{day.getDate()}</span>
