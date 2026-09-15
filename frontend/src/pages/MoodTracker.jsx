@@ -12,7 +12,7 @@ import moodService from '../services/moodService';
 import { getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { getMood, moodInsight } from '../utils/moods';
-import { MONTH_NAMES, startOfMonth, endOfMonth, toDateInput } from '../utils/format';
+import { MONTH_NAMES, startOfMonth, endOfMonth, toDateInput, isSameDay, formatDate } from '../utils/format';
 
 /** Adds two {mood,count}[] distributions together and recomputes percent/topMood. */
 const mergeDistributions = (a = [], b = []) => {
@@ -33,10 +33,10 @@ export default function MoodTracker() {
 
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth());
+  const [selectedDate, setSelectedDate] = useState(today);
   const [entries, setEntries] = useState([]);
   const [moodCheckins, setMoodCheckins] = useState([]);
   const [stats, setStats] = useState(null);
-  const [todayMood, setTodayMood] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
 
@@ -46,17 +46,15 @@ export default function MoodTracker() {
     const to = endOfMonth(new Date(year, month, 1)).toISOString();
 
     try {
-      const [list, journalStats, moods, moodStats, todayRes] = await Promise.all([
+      const [list, journalStats, moods, moodStats] = await Promise.all([
         journalService.list({ from, to, limit: 60 }),
         journalService.stats({ from, to }),
         moodService.list({ from, to }),
         moodService.stats({ from, to }),
-        moodService.today(),
       ]);
       setEntries(list.data.entries);
       setMoodCheckins(moods.data.moods);
       setStats(mergeDistributions(journalStats.data.distribution, moodStats.data.distribution));
-      setTodayMood(todayRes.data.mood);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -68,13 +66,15 @@ export default function MoodTracker() {
     load();
   }, [load]);
 
+  /** Records a mood for whichever date is currently selected on the calendar. */
   const recordMood = async (mood) => {
     if (!mood || checkingIn) return;
     setCheckingIn(true);
     try {
-      const res = await moodService.checkIn({ mood, date: toDateInput() });
-      setTodayMood(res.data.mood);
-      toast.success('Mood recorded');
+      await moodService.checkIn({ mood, date: toDateInput(selectedDate) });
+      toast.success(
+        isSameDay(selectedDate, today) ? 'Mood recorded' : `Mood recorded for ${formatDate(selectedDate)}`
+      );
       load();
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -102,7 +102,11 @@ export default function MoodTracker() {
   const hasData = Boolean(stats?.countedInRange);
   const top = stats?.topMood ? getMood(stats.topMood) : null;
   const daysNoted = Object.keys(entriesByDay).length;
-  const todayMoodMeta = todayMood ? getMood(todayMood.mood) : null;
+
+  const selectedIsToday = isSameDay(selectedDate, today);
+  const selectedCheckin = moodCheckins.find((m) => isSameDay(m.date, selectedDate)) || null;
+  const selectedMoodMeta = selectedCheckin ? getMood(selectedCheckin.mood) : null;
+  const selectedDateLabel = selectedIsToday ? 'today' : `on ${formatDate(selectedDate)}`;
 
   return (
     <div className="space-y-6">
@@ -116,29 +120,11 @@ export default function MoodTracker() {
         <Flower className="hidden h-10 w-10 shrink-0 text-[rgb(var(--accent))] opacity-50 sm:block" />
       </header>
 
-      {/* Daily check-in — the main purpose of this page, styled like a little
-          journal check-in rather than a dashboard widget. */}
-      <section className="card relative overflow-visible p-5 pt-7 sm:p-6 sm:pt-8">
-        <span className="absolute -top-2.5 left-7 -rotate-6" aria-hidden="true">
-          <WashiTapeCharm className="h-5 w-14" />
-        </span>
-
-        <h2 className="mb-1 flex items-center gap-1.5 font-hand text-2xl" style={{ color: 'rgb(var(--heading))' }}>
-          <Sparkles size={15} className="text-[rgb(var(--accent))]" aria-hidden="true" />
-          How are you feeling today?
-        </h2>
-        <p className="muted mb-4 text-sm">
-          {todayMoodMeta
-            ? `You're feeling ${todayMoodMeta.label.toLowerCase()} today — tap another sticker to change it.`
-            : 'Pick whatever sticker fits right now, no need to overthink it.'}
-        </p>
-        <MoodSelector value={todayMood?.mood || ''} onChange={recordMood} />
-      </section>
-
       {/* items-start keeps the calendar card its natural height instead of
           stretching it to match the taller insights column. */}
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr] lg:items-start">
-        {/* Mood calendar */}
+        {/* Mood calendar — the main way to pick a day, including past ones
+            you forgot to check in on. Future days can't be picked. */}
         <section className="card p-5 sm:p-6">
           {loading ? (
             <SkeletonLines lines={7} />
@@ -152,19 +138,42 @@ export default function MoodTracker() {
                 setMonth(m);
               }}
               entriesByDay={entriesByDay}
+              selectedDate={selectedDate}
+              onSelectDate={setSelectedDate}
+              maxDate={today}
             />
           )}
 
           {!loading && (
             <p className="muted mt-5 border-t pt-4 text-xs leading-relaxed">
               You noted a mood on {daysNoted} {daysNoted === 1 ? 'day' : 'days'} in{' '}
-              {MONTH_NAMES[month]}.
+              {MONTH_NAMES[month]}. Click any past date to fill in a day you missed.
             </p>
           )}
         </section>
 
-        {/* Insights */}
         <div className="space-y-6">
+          {/* Check-in for whichever date is selected on the calendar —
+              styled like a little journal check-in rather than a dashboard
+              widget. */}
+          <section className="card relative overflow-visible p-5 pt-7 sm:p-6 sm:pt-8">
+            <span className="absolute -top-2.5 left-7 -rotate-6" aria-hidden="true">
+              <WashiTapeCharm className="h-5 w-14" />
+            </span>
+
+            <h2 className="mb-1 flex items-center gap-1.5 font-hand text-2xl" style={{ color: 'rgb(var(--heading))' }}>
+              <Sparkles size={15} className="text-[rgb(var(--accent))]" aria-hidden="true" />
+              How did you feel {selectedDateLabel}?
+            </h2>
+            <p className="muted mb-4 text-sm">
+              {selectedMoodMeta
+                ? `Logged as ${selectedMoodMeta.label.toLowerCase()} — tap another sticker to change it.`
+                : selectedIsToday
+                  ? 'Pick whatever sticker fits right now, no need to overthink it.'
+                  : 'Missed this one? Pick a sticker and it will be saved for that day.'}
+            </p>
+            <MoodSelector value={selectedCheckin?.mood || ''} onChange={recordMood} />
+          </section>
           <section className="card relative overflow-hidden p-5 sm:p-6">
             <h2 className="mb-5 font-serif text-lg">Mood Insights</h2>
 

@@ -16,6 +16,7 @@ export default function Calendar({
   selectedDate,
   onSelectDate,
   variant = 'default',
+  maxDate,
 }) {
   const weeks = monthGrid(year, month);
   const today = new Date();
@@ -80,18 +81,24 @@ export default function Calendar({
                 const mood = has ? getMood(dayEntries[0].mood) : null;
                 const isToday = isSameDay(day, today);
                 const isSelected = selectedDate && isSameDay(day, selectedDate);
+                const isFuture = Boolean(maxDate) && day > maxDate;
 
                 return (
                   <td key={di} className="p-0 text-center align-middle">
                     <button
                       type="button"
-                      onClick={() => onSelectDate?.(day)}
+                      onClick={() => !isFuture && onSelectDate?.(day)}
+                      disabled={isFuture}
                       aria-label={`${day.getDate()} ${MONTH_NAMES[month]}${
-                        has ? `, ${dayEntries.length} entry${dayEntries.length > 1 ? 's' : ''}` : ', no entries'
+                        isFuture
+                          ? ', not yet here'
+                          : has
+                            ? `, ${dayEntries.length} entry${dayEntries.length > 1 ? 's' : ''}`
+                            : ', no entries'
                       }`}
                       aria-current={isToday ? 'date' : undefined}
                       aria-pressed={Boolean(isSelected)}
-                      className="relative mx-auto flex aspect-square w-full max-w-[42px] flex-col items-center justify-center rounded-full text-xs transition-all duration-200 hover:scale-105 sm:text-sm"
+                      className="relative mx-auto flex aspect-square w-full max-w-[42px] flex-col items-center justify-center rounded-full text-xs transition-all duration-200 enabled:hover:scale-105 disabled:cursor-not-allowed disabled:opacity-30 sm:text-sm"
                       style={{
                         backgroundColor:
                           showMoodFill && mood
