@@ -1,5 +1,15 @@
 const Journal = require('../models/Journal');
-const { MOODS, PAPER_STYLES, DECORATIONS, MAX_DECORATIONS } = require('../models/Journal');
+const {
+  MOODS,
+  PAPER_STYLES,
+  DECORATIONS,
+  MAX_DECORATIONS,
+  FONTS,
+  LAYOUTS,
+  PHOTO_STYLES,
+  HEADING_STYLES,
+  DIVIDERS,
+} = require('../models/Journal');
 const { ok, fail, asyncHandler } = require('../utils/response');
 
 /** Every query is locked to the signed-in user, so entries can never leak across accounts. */
@@ -213,6 +223,11 @@ const pickBody = (body) => {
       ...new Set((Array.isArray(body.decorations) ? body.decorations : []).filter((d) => d && d !== 'none')),
     ].slice(0, MAX_DECORATIONS);
   }
+  if (body.font !== undefined) out.font = body.font;
+  if (body.layout !== undefined) out.layout = body.layout;
+  if (body.photoStyle !== undefined) out.photoStyle = body.photoStyle;
+  if (body.headingStyle !== undefined) out.headingStyle = body.headingStyle;
+  if (body.divider !== undefined) out.divider = body.divider;
   if (body.tags !== undefined) {
     out.tags = Array.isArray(body.tags)
       ? body.tags
@@ -231,6 +246,16 @@ const pickBody = (body) => {
   return out;
 };
 
+/** Validates the entry-customization fields shared by create and update. */
+const invalidCustomization = (payload) => {
+  if (payload.font && !FONTS.includes(payload.font)) return 'That font is not one we recognise';
+  if (payload.layout && !LAYOUTS.includes(payload.layout)) return 'That layout is not one we recognise';
+  if (payload.photoStyle && !PHOTO_STYLES.includes(payload.photoStyle)) return 'That photo style is not one we recognise';
+  if (payload.headingStyle && !HEADING_STYLES.includes(payload.headingStyle)) return 'That heading style is not one we recognise';
+  if (payload.divider && !DIVIDERS.includes(payload.divider)) return 'That divider style is not one we recognise';
+  return null;
+};
+
 // POST /api/journals
 const createJournal = asyncHandler(async (req, res) => {
   const payload = pickBody(req.body);
@@ -247,6 +272,8 @@ const createJournal = asyncHandler(async (req, res) => {
   if (payload.decorations && payload.decorations.some((d) => !DECORATIONS.includes(d))) {
     return fail(res, 'One of those decorations is not one we recognise', 400);
   }
+  const customizationError = invalidCustomization(payload);
+  if (customizationError) return fail(res, customizationError, 400);
 
   const entry = new Journal({ ...payload, userId: req.user._id });
   if (req.body.lockPassword && String(req.body.lockPassword).trim()) {
@@ -280,6 +307,8 @@ const updateJournal = asyncHandler(async (req, res) => {
   if (payload.decorations && payload.decorations.some((d) => !DECORATIONS.includes(d))) {
     return fail(res, 'One of those decorations is not one we recognise', 400);
   }
+  const customizationError = invalidCustomization(payload);
+  if (customizationError) return fail(res, customizationError, 400);
 
   const entry = await Journal.findOne(scoped(req, { _id: req.params.id })).select('+lockPassword');
   if (!entry) return fail(res, 'We could not find that entry', 404);

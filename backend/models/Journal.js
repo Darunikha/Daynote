@@ -85,6 +85,13 @@ const DECORATIONS = [
 // frontend/src/utils/decorations.js MAX_DECORATIONS.
 const MAX_DECORATIONS = 6;
 
+// Entry customization options — keep in sync with frontend/src/utils/entryStyle.js
+const FONTS = ['clean', 'serif', 'handwritten', 'typewriter'];
+const LAYOUTS = ['classic', 'scrapbook', 'photo-focused', 'minimal'];
+const PHOTO_STYLES = ['plain', 'polaroid', 'pinned', 'taped', 'framed'];
+const HEADING_STYLES = ['classic', 'handwritten', 'boxed', 'underline'];
+const DIVIDERS = ['none', 'dashed', 'floral', 'scallop'];
+
 const journalSchema = new mongoose.Schema(
   {
     userId: {
@@ -122,6 +129,12 @@ const journalSchema = new mongoose.Schema(
           .filter(Boolean)
           .slice(0, 12),
     },
+    // Entry customization — whole-entry style choices, all optional/subtle.
+    font: { type: String, enum: FONTS, default: 'clean' },
+    layout: { type: String, enum: LAYOUTS, default: 'classic' },
+    photoStyle: { type: String, enum: PHOTO_STYLES, default: 'plain' },
+    headingStyle: { type: String, enum: HEADING_STYLES, default: 'classic' },
+    divider: { type: String, enum: DIVIDERS, default: 'none' },
     date: { type: Date, default: Date.now, index: true },
     isFavorite: { type: Boolean, default: false },
     isDraft: { type: Boolean, default: false },
@@ -156,4 +169,9 @@ module.exports.MOODS = MOODS;
 module.exports.PAPER_STYLES = PAPER_STYLES;
 module.exports.DECORATIONS = DECORATIONS;
 module.exports.MAX_DECORATIONS = MAX_DECORATIONS;
+module.exports.FONTS = FONTS;
+module.exports.LAYOUTS = LAYOUTS;
+module.exports.PHOTO_STYLES = PHOTO_STYLES;
+module.exports.HEADING_STYLES = HEADING_STYLES;
+module.exports.DIVIDERS = DIVIDERS;
 

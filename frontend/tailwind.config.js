@@ -47,6 +47,7 @@ export default {
         serif: ['"Fraunces"', '"Cormorant Garamond"', 'Georgia', 'serif'],
         sans: ['"Inter"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         hand: ['"Caveat"', '"Fraunces"', 'cursive'],
+        typewriter: ['"Special Elite"', '"Courier New"', 'monospace'],
       },
       boxShadow: {
         paper: '0 1px 2px rgba(107, 75, 90, 0.04), 0 6px 20px -12px rgba(107, 75, 90, 0.18)',

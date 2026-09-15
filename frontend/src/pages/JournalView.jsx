@@ -12,6 +12,9 @@ import { useToast } from '../context/ToastContext';
 import { formatLongDate, toParagraphs, readingTime } from '../utils/format';
 import { getPaperBackground } from '../utils/paperStyles';
 import EntryCharm from '../components/EntryCharm';
+import PhotoFrame from '../components/PhotoFrame';
+import { getFont } from '../utils/entryStyle';
+import { DividerCharm } from '../components/Charms';
 
 export default function JournalView() {
   const { id } = useParams();
@@ -128,6 +131,50 @@ export default function JournalView() {
   const isLockedView = entry.isLocked && !isUnlocked;
   const isCapsuleLocked = Boolean(entry.isCapsuleLocked);
 
+  const layout = entry.layout || 'classic';
+  const isMinimal = layout === 'minimal';
+  const isPhotoFocused = layout === 'photo-focused' && Boolean(entry.imageUrl);
+  const isScrapbookLayout = layout === 'scrapbook' && Boolean(entry.imageUrl);
+
+  const headingStyle = entry.headingStyle || 'classic';
+  const titleClass = 'mb-4 break-words text-3xl leading-tight sm:text-4xl';
+  const title =
+    headingStyle === 'handwritten' ? (
+      <h1 className={`${titleClass} font-hand !text-4xl sm:!text-5xl`}>{entry.title}</h1>
+    ) : headingStyle === 'boxed' ? (
+      <h1
+        className={`${titleClass} font-serif inline-block rounded-md px-3 py-1`}
+        style={{ backgroundColor: 'rgb(var(--accent-soft))' }}
+      >
+        {entry.title}
+      </h1>
+    ) : headingStyle === 'underline' ? (
+      <h1
+        className={`${titleClass} font-serif inline-block border-b-2 pb-1`}
+        style={{ borderColor: 'rgb(var(--accent))' }}
+      >
+        {entry.title}
+      </h1>
+    ) : (
+      <h1 className={`${titleClass} font-serif`}>{entry.title}</h1>
+    );
+
+  const divider = entry.divider || 'none';
+  const dividerEl =
+    divider === 'dashed' ? (
+      <hr className="my-6 border-t border-dashed" style={{ borderColor: 'rgb(var(--border))' }} />
+    ) : divider === 'scallop' ? (
+      <div className="my-6 flex justify-center">
+        <DividerCharm className="h-4 w-32 opacity-70" />
+      </div>
+    ) : divider === 'floral' ? (
+      <div className="my-6 flex items-center justify-center gap-3">
+        <span className="h-px w-16" style={{ backgroundColor: 'rgb(var(--border))' }} />
+        <Flower className="h-4 w-4 shrink-0" style={{ color: 'rgb(var(--accent))' }} />
+        <span className="h-px w-16" style={{ backgroundColor: 'rgb(var(--border))' }} />
+      </div>
+    ) : null;
+
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       {/* Actions bar */}
@@ -215,10 +262,18 @@ export default function JournalView() {
       <div className="relative">
         <EntryCharm values={entry.decorations} />
         <article
-          className="card relative overflow-hidden p-6 sm:p-10"
+          className={`card relative overflow-hidden ${isMinimal ? 'p-6 sm:p-8' : 'p-6 sm:p-10'}`}
           style={getPaperBackground(entry.paperStyle)}
         >
-        <Flower className="pointer-events-none absolute -right-2 -top-2 h-16 w-16 text-[rgb(var(--accent))] opacity-25" />
+        {!isMinimal && (
+          <Flower className="pointer-events-none absolute -right-2 -top-2 h-16 w-16 text-[rgb(var(--accent))] opacity-25" />
+        )}
+
+        {isPhotoFocused && !isCapsuleLocked && !isLockedView && (
+          <div className="mb-6">
+            <PhotoFrame src={entry.imageUrl} alt="" style={entry.photoStyle} imgClassName="max-h-[480px]" />
+          </div>
+        )}
 
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <time
@@ -262,9 +317,8 @@ export default function JournalView() {
           )}
         </div>
 
-        <h1 className="mb-4 break-words font-serif text-3xl leading-tight sm:text-4xl">
-          {entry.title}
-        </h1>
+        {title}
+        {!isCapsuleLocked && !isLockedView && dividerEl}
 
         {isCapsuleLocked ? (
           <div className="my-8 rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50/70 dark:bg-amber-950/40 p-8 text-center shadow-sm space-y-3">
@@ -309,19 +363,38 @@ export default function JournalView() {
               {readingTime(entry.content)} min read
             </p>
 
-            {entry.imageUrl && (
-              <img
-                src={entry.imageUrl}
-                alt=""
-                className="mb-8 max-h-[420px] w-full rounded-2xl object-cover"
-              />
-            )}
+            {entry.imageUrl && !isPhotoFocused && isScrapbookLayout ? (
+              <div className="mb-8 flex flex-col gap-6 sm:flex-row-reverse sm:items-start">
+                <div className="sm:w-64 sm:shrink-0">
+                  <PhotoFrame src={entry.imageUrl} alt="" style={entry.photoStyle} imgClassName="max-h-[300px] sm:max-h-none" />
+                </div>
+                <div
+                  className={`prose-journal max-w-[60ch] flex-1 text-[15px] sm:text-base ${getFont(entry.font).className}`}
+                  style={{ color: 'rgb(var(--text))' }}
+                >
+                  {toParagraphs(entry.content).map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                {entry.imageUrl && !isPhotoFocused && (
+                  <div className="mb-8">
+                    <PhotoFrame src={entry.imageUrl} alt="" style={entry.photoStyle} imgClassName="max-h-[420px]" />
+                  </div>
+                )}
 
-            <div className="prose-journal max-w-[68ch] text-[15px] sm:text-base" style={{ color: 'rgb(var(--text))' }}>
-              {toParagraphs(entry.content).map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
-            </div>
+                <div
+                  className={`prose-journal max-w-[68ch] text-[15px] sm:text-base ${getFont(entry.font).className}`}
+                  style={{ color: 'rgb(var(--text))' }}
+                >
+                  {toParagraphs(entry.content).map((p, i) => (
+                    <p key={i}>{p}</p>
+                  ))}
+                </div>
+              </>
+            )}
 
             {/* Voice Note & Transcript Audio Player */}
             {entry.audioUrl && (

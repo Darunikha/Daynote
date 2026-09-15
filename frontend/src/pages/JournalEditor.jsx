@@ -6,8 +6,11 @@ import DecorationPicker from '../components/DecorationPicker';
 import PopoverPanel from '../components/PopoverPanel';
 import EntryCharm from '../components/EntryCharm';
 import JournalPrompt from '../components/JournalPrompt';
+import EntryCustomizePanel from '../components/EntryCustomizePanel';
+import PhotoFrame from '../components/PhotoFrame';
 import { getPaperBackground, getPaperStyleMeta } from '../utils/paperStyles';
 import { getDecoration } from '../utils/decorations';
+import { getFont, getLayout, PHOTO_STYLES } from '../utils/entryStyle';
 import VoiceRecorder from '../components/VoiceRecorder';
 import { Spinner, SkeletonLines } from '../components/Loading';
 import { SprigLeft, TapedNote } from '../components/Botanical';
@@ -25,6 +28,11 @@ const EMPTY = {
   content: '',
   paperStyle: 'plain',
   decorations: [],
+  font: 'clean',
+  layout: 'classic',
+  photoStyle: 'plain',
+  headingStyle: 'classic',
+  divider: 'none',
   tags: [],
   date: toDateInput(),
   isFavorite: false,
@@ -101,6 +109,11 @@ export default function JournalEditor() {
           content: e.content,
           paperStyle: e.paperStyle || 'plain',
           decorations: e.decorations || [],
+          font: e.font || 'clean',
+          layout: e.layout || 'classic',
+          photoStyle: e.photoStyle || 'plain',
+          headingStyle: e.headingStyle || 'classic',
+          divider: e.divider || 'none',
           tags: e.tags || [],
           date: toDateInput(e.date),
           isFavorite: e.isFavorite,
@@ -305,6 +318,25 @@ export default function JournalEditor() {
         >
           <DecorationPicker values={form.decorations} onChange={(decorations) => update({ decorations })} />
         </PopoverPanel>
+
+        <PopoverPanel
+          label="Customize"
+          valueLabel={getLayout(form.layout).label}
+          preview={
+            <span
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold ${getFont(form.font).className}`}
+              style={{ backgroundColor: 'rgb(var(--surface-alt))', color: 'rgb(var(--heading))' }}
+              aria-hidden="true"
+            >
+              Aa
+            </span>
+          }
+        >
+          <EntryCustomizePanel
+            value={{ font: form.font, layout: form.layout, headingStyle: form.headingStyle, divider: form.divider }}
+            onChange={(next) => update(next)}
+          />
+        </PopoverPanel>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
@@ -338,7 +370,7 @@ export default function JournalEditor() {
             value={form.content}
             onChange={(e) => update({ content: e.target.value })}
             placeholder={'Start writing whatever comes to mind…\nIt can be big or small, happy or sad.'}
-            className="paper-lines w-full min-h-[360px] flex-1 resize-y bg-transparent text-[15px] leading-8 outline-none placeholder:opacity-60"
+            className={`paper-lines w-full min-h-[360px] flex-1 resize-y bg-transparent text-[15px] leading-8 outline-none placeholder:opacity-60 ${getFont(form.font).className}`}
             style={{ color: 'rgb(var(--text))' }}
           />
 
@@ -522,21 +554,45 @@ export default function JournalEditor() {
             <h2 className="mb-2 font-serif text-sm">Photo</h2>
 
             {form.imageUrl ? (
-              <div className="relative">
-                <img
-                  src={form.imageUrl}
-                  alt="Attached to this entry"
-                  className="h-40 w-full rounded-xl object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => update({ imageUrl: '' })}
-                  aria-label="Remove image"
-                  className="absolute right-2 top-2 rounded-full p-1.5 shadow-paper"
-                  style={{ backgroundColor: 'rgb(var(--surface))' }}
-                >
-                  <X size={14} />
-                </button>
+              <div className="space-y-3">
+                <div className="relative">
+                  <PhotoFrame
+                    src={form.imageUrl}
+                    alt="Attached to this entry"
+                    style={form.photoStyle}
+                    imgClassName="h-40"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => update({ imageUrl: '' })}
+                    aria-label="Remove image"
+                    className="absolute right-2 top-2 rounded-full p-1.5 shadow-paper"
+                    style={{ backgroundColor: 'rgb(var(--surface))' }}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {PHOTO_STYLES.map((p) => {
+                    const active = form.photoStyle === p.value;
+                    return (
+                      <button
+                        key={p.value}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => update({ photoStyle: p.value })}
+                        className="rounded-full border px-2.5 py-1 text-[11px] transition-colors"
+                        style={{
+                          backgroundColor: active ? 'rgb(var(--accent))' : 'transparent',
+                          color: active ? '#4A3038' : 'rgb(var(--text-muted))',
+                          borderColor: active ? 'transparent' : 'rgb(var(--border))',
+                        }}
+                      >
+                        {p.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             ) : uploadEnabled ? (
               <>
