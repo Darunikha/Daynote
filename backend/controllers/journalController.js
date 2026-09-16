@@ -9,6 +9,11 @@ const {
   PHOTO_STYLES,
   HEADING_STYLES,
   DIVIDERS,
+  STICKY_NOTE_DESIGNS,
+  STICKY_NOTE_FONTS,
+  STICKY_NOTE_SIZES,
+  STICKY_NOTE_ALIGN,
+  MAX_STICKY_NOTES,
 } = require('../models/Journal');
 const { ok, fail, asyncHandler } = require('../utils/response');
 
@@ -81,6 +86,7 @@ const getJournals = asyncHandler(async (req, res) => {
         imageUrl: '',
         audioUrl: '',
         audioTranscript: '',
+        stickyNotes: [],
         isCapsuleLocked,
       };
     }
@@ -96,6 +102,7 @@ const getJournals = asyncHandler(async (req, res) => {
         imageUrl: '',
         audioUrl: '',
         audioTranscript: '',
+        stickyNotes: [],
         isCapsuleLocked: true,
       };
     }
@@ -187,6 +194,7 @@ const getJournal = asyncHandler(async (req, res) => {
       masked.imageUrl = '';
       masked.audioUrl = '';
       masked.audioTranscript = '';
+      masked.stickyNotes = [];
       masked.isLocked = true;
       masked.isCapsuleLocked = isCapsuleLocked;
       return ok(res, { message: 'Journal entry is locked', data: { entry: masked, isUnlocked: false } });
@@ -207,6 +215,7 @@ const getJournal = asyncHandler(async (req, res) => {
     obj.imageUrl = '';
     obj.audioUrl = '';
     obj.audioTranscript = '';
+    obj.stickyNotes = [];
   }
 
   return ok(res, { message: 'Journal entry fetched successfully', data: { entry: obj, isUnlocked: !entry.isLocked } });
@@ -228,6 +237,23 @@ const pickBody = (body) => {
   if (body.photoStyle !== undefined) out.photoStyle = body.photoStyle;
   if (body.headingStyle !== undefined) out.headingStyle = body.headingStyle;
   if (body.divider !== undefined) out.divider = body.divider;
+  if (body.stickyNotes !== undefined) {
+    out.stickyNotes = (Array.isArray(body.stickyNotes) ? body.stickyNotes : [])
+      .filter((n) => n && typeof n === 'object' && n.id)
+      .slice(0, MAX_STICKY_NOTES)
+      .map((n) => ({
+        id: String(n.id),
+        design: n.design,
+        color: typeof n.color === 'string' ? n.color.slice(0, 20) : '',
+        text: typeof n.text === 'string' ? n.text.slice(0, 400) : '',
+        x: Number.isFinite(n.x) ? Math.min(100, Math.max(0, n.x)) : 50,
+        y: Number.isFinite(n.y) ? Math.min(100, Math.max(0, n.y)) : 20,
+        rotation: Number.isFinite(n.rotation) ? Math.min(45, Math.max(-45, n.rotation)) : 0,
+        font: n.font,
+        fontSize: n.fontSize,
+        align: n.align,
+      }));
+  }
   if (body.tags !== undefined) {
     out.tags = Array.isArray(body.tags)
       ? body.tags
@@ -253,6 +279,14 @@ const invalidCustomization = (payload) => {
   if (payload.photoStyle && !PHOTO_STYLES.includes(payload.photoStyle)) return 'That photo style is not one we recognise';
   if (payload.headingStyle && !HEADING_STYLES.includes(payload.headingStyle)) return 'That heading style is not one we recognise';
   if (payload.divider && !DIVIDERS.includes(payload.divider)) return 'That divider style is not one we recognise';
+  if (payload.stickyNotes) {
+    for (const note of payload.stickyNotes) {
+      if (note.design && !STICKY_NOTE_DESIGNS.includes(note.design)) return 'That sticky note design is not one we recognise';
+      if (note.font && !STICKY_NOTE_FONTS.includes(note.font)) return 'That sticky note font is not one we recognise';
+      if (note.fontSize && !STICKY_NOTE_SIZES.includes(note.fontSize)) return 'That sticky note size is not one we recognise';
+      if (note.align && !STICKY_NOTE_ALIGN.includes(note.align)) return 'That sticky note alignment is not one we recognise';
+    }
+  }
   return null;
 };
 
@@ -499,6 +533,7 @@ const getOnThisDay = asyncHandler(async (req, res) => {
         imageUrl: '',
         audioUrl: '',
         audioTranscript: '',
+        stickyNotes: [],
         timeAgo,
         isCapsuleLocked,
       };
@@ -516,6 +551,7 @@ const getOnThisDay = asyncHandler(async (req, res) => {
         imageUrl: '',
         audioUrl: '',
         audioTranscript: '',
+        stickyNotes: [],
         timeAgo,
         isCapsuleLocked: true,
       };

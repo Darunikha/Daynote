@@ -8,9 +8,12 @@ import EntryCharm from '../components/EntryCharm';
 import JournalPrompt from '../components/JournalPrompt';
 import EntryCustomizePanel from '../components/EntryCustomizePanel';
 import PhotoFrame from '../components/PhotoFrame';
+import StickyNotesLayer from '../components/StickyNotesLayer';
+import StickyNotePicker from '../components/StickyNotePicker';
 import { getPaperBackground, getPaperStyleMeta } from '../utils/paperStyles';
 import { getDecoration } from '../utils/decorations';
 import { getFont, getLayout, PHOTO_STYLES } from '../utils/entryStyle';
+import { createStickyNote, getNoteBackgroundStyle } from '../utils/stickyNotes';
 import VoiceRecorder from '../components/VoiceRecorder';
 import { Spinner, SkeletonLines } from '../components/Loading';
 import { SprigLeft, TapedNote } from '../components/Botanical';
@@ -33,6 +36,7 @@ const EMPTY = {
   photoStyle: 'plain',
   headingStyle: 'classic',
   divider: 'none',
+  stickyNotes: [],
   tags: [],
   date: toDateInput(),
   isFavorite: false,
@@ -114,6 +118,7 @@ export default function JournalEditor() {
           photoStyle: e.photoStyle || 'plain',
           headingStyle: e.headingStyle || 'classic',
           divider: e.divider || 'none',
+          stickyNotes: e.stickyNotes || [],
           tags: e.tags || [],
           date: toDateInput(e.date),
           isFavorite: e.isFavorite,
@@ -337,6 +342,25 @@ export default function JournalEditor() {
             onChange={(next) => update(next)}
           />
         </PopoverPanel>
+
+        <PopoverPanel
+          label="Sticky Notes"
+          valueLabel={form.stickyNotes.length ? `${form.stickyNotes.length} on page` : 'None'}
+          preview={
+            <span
+              className="h-6 w-6 shrink-0 rotate-[-6deg] rounded-sm border shadow-sm"
+              style={{ borderColor: 'rgb(var(--border))', ...getNoteBackgroundStyle('pastel') }}
+              aria-hidden="true"
+            />
+          }
+        >
+          <StickyNotePicker
+            count={form.stickyNotes.length}
+            onAdd={(design) =>
+              update({ stickyNotes: [...form.stickyNotes, createStickyNote(design, form.stickyNotes.length)] })
+            }
+          />
+        </PopoverPanel>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
@@ -393,6 +417,12 @@ export default function JournalEditor() {
               onTranscriptChange={(txt) => update({ audioTranscript: txt })}
             />
           </div>
+
+          <StickyNotesLayer
+            notes={form.stickyNotes}
+            editable
+            onChange={(stickyNotes) => update({ stickyNotes })}
+          />
         </div>
 
         {/* Side panel — the remaining, less-frequently-touched settings */}

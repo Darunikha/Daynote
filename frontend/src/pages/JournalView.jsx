@@ -13,6 +13,7 @@ import { formatLongDate, toParagraphs, readingTime } from '../utils/format';
 import { getPaperBackground } from '../utils/paperStyles';
 import EntryCharm from '../components/EntryCharm';
 import PhotoFrame from '../components/PhotoFrame';
+import StickyNotesLayer from '../components/StickyNotesLayer';
 import { getFont } from '../utils/entryStyle';
 import { DividerCharm } from '../components/Charms';
 
@@ -440,6 +441,8 @@ export default function JournalView() {
             )}
           </>
         )}
+
+        <StickyNotesLayer notes={entry.stickyNotes} editable={false} />
         </article>
       </div>
 
