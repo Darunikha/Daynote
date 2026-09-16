@@ -13,8 +13,8 @@ export default function MoodBadge({ mood, size = 'sm', showLabel = true }) {
       style={{ backgroundColor: m.soft, color: '#5B4A46' }}
       title={m.label}
     >
-      <span aria-hidden="true" className={isLarge ? 'text-base' : 'text-sm'}>
-        {m.emoji}
+      <span aria-hidden="true" className={`inline-block ${isLarge ? 'h-5 w-5' : 'h-4 w-4'}`}>
+        <m.Icon className="h-full w-full" />
       </span>
       {showLabel && <span>{m.label}</span>}
       {!showLabel && <span className="sr-only">{m.label}</span>}
