@@ -52,9 +52,18 @@ export const getNoteBackgroundStyle = (design, color) => {
         backgroundSize: '100% 20px',
       };
     case 'floral':
-      return { backgroundColor: '#FCF4F3' };
+      return {
+        backgroundColor: '#FCF4F3',
+        backgroundImage:
+          'radial-gradient(rgba(219,169,179,0.28) 1.6px, transparent 1.6px)',
+        backgroundSize: '16px 16px',
+      };
     case 'scalloped':
-      return { backgroundColor: '#FBEFEF' };
+      return {
+        backgroundColor: '#FBEFEF',
+        backgroundImage: 'radial-gradient(rgba(219,169,179,0.24) 1.4px, transparent 1.4px)',
+        backgroundSize: '14px 14px',
+      };
     case 'cloud':
       return { backgroundColor: '#EAF1FA' };
     case 'heart':
@@ -65,7 +74,13 @@ export const getNoteBackgroundStyle = (design, color) => {
       return { backgroundColor: '#FBF7EF' };
     case 'pastel':
     default:
-      return { backgroundColor: color || PASTEL_COLORS[0] };
+      return {
+        backgroundColor: color || PASTEL_COLORS[0],
+        backgroundImage:
+          'linear-gradient(rgba(255,255,255,0.55) 50%, transparent 50%), linear-gradient(90deg, rgba(255,255,255,0.55) 50%, transparent 50%)',
+        backgroundSize: '16px 16px',
+        backgroundBlendMode: 'multiply',
+      };
   }
 };
 

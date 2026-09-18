@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Move, RotateCw, X, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
-import { TinyFlowerCharm, WashiTapeCharm } from './Charms';
+import { TinyFlowerCharm, WashiTapeCharm, PaperClipCharm, TinyBowCharm, StarCharm } from './Charms';
 import {
   STICKY_NOTE_FONTS,
   STICKY_NOTE_SIZES,
@@ -15,13 +15,16 @@ const HEIGHT = 152;
 function DesignAccent({ design }) {
   if (design === 'floral') {
     return (
-      <TinyFlowerCharm className="pointer-events-none absolute -right-2.5 -top-2.5 h-7 w-7" />
+      <>
+        <TinyFlowerCharm className="pointer-events-none absolute -right-3 -top-3 h-9 w-9" />
+        <TinyFlowerCharm className="pointer-events-none absolute -right-1 top-4 h-5 w-5 rotate-12 opacity-90" />
+      </>
     );
   }
   if (design === 'taped') {
     return (
-      <span className="pointer-events-none absolute -top-2.5 left-1/2 -translate-x-1/2 -rotate-3">
-        <WashiTapeCharm className="h-4 w-12" />
+      <span className="pointer-events-none absolute -top-3.5 left-1/2 -translate-x-1/2 -rotate-3">
+        <WashiTapeCharm className="h-6 w-20" />
       </span>
     );
   }
@@ -29,32 +32,58 @@ function DesignAccent({ design }) {
     return (
       <>
         <span
-          className="pointer-events-none absolute -top-2.5 left-5 h-6 w-6 rounded-full"
+          className="pointer-events-none absolute -top-3 left-5 h-7 w-7 rounded-full"
           style={{ backgroundColor: '#F5EFE1', boxShadow: 'inset 0 0 0 1px rgb(0 0 0 / 0.06)' }}
         />
         <span
-          className="pointer-events-none absolute -top-2.5 right-5 h-6 w-6 rounded-full"
+          className="pointer-events-none absolute -top-3 right-5 h-7 w-7 rounded-full"
           style={{ backgroundColor: '#F5EFE1', boxShadow: 'inset 0 0 0 1px rgb(0 0 0 / 0.06)' }}
         />
-        <span className="pointer-events-none absolute left-7 top-[-4px] h-3 w-3 rounded-full" style={{ backgroundColor: '#E3B7B0' }} />
-        <span className="pointer-events-none absolute right-7 top-[-4px] h-3 w-3 rounded-full" style={{ backgroundColor: '#E3B7B0' }} />
+        <span className="pointer-events-none absolute left-7 top-[-5px] h-3.5 w-3.5 rounded-full" style={{ backgroundColor: '#E3B7B0' }} />
+        <span className="pointer-events-none absolute right-7 top-[-5px] h-3.5 w-3.5 rounded-full" style={{ backgroundColor: '#E3B7B0' }} />
+        <span
+          className="pointer-events-none absolute left-1/2 top-2.5 h-1.5 w-2 -translate-x-1/2 rounded-full"
+          style={{ backgroundColor: '#B98D7B' }}
+        />
       </>
     );
   }
   if (design === 'scalloped') {
     return (
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 172 12"
-        className="pointer-events-none absolute -top-[1px] left-0 h-3 w-full"
-        preserveAspectRatio="none"
-      >
-        <path
-          d="M0 12 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 V0H0Z"
-          fill="#FBEFEF"
-        />
-      </svg>
+      <>
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 172 12"
+          className="pointer-events-none absolute -top-[1px] left-0 h-3 w-full"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0 12 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 V0H0Z"
+            fill="#FBEFEF"
+          />
+        </svg>
+        <TinyFlowerCharm className="pointer-events-none absolute -left-2 -top-2 h-7 w-7 -rotate-6" />
+        <TinyFlowerCharm className="pointer-events-none absolute left-6 -top-1 h-4 w-4 rotate-6 opacity-90" />
+      </>
     );
+  }
+  if (design === 'cloud') {
+    return (
+      <>
+        <span className="pointer-events-none absolute left-[38%] top-[38%] h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#5C6B7A' }} />
+        <span className="pointer-events-none absolute left-[54%] top-[38%] h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#5C6B7A' }} />
+        <span className="pointer-events-none absolute left-[46%] top-[45%] h-1 w-1.5 rounded-full" style={{ backgroundColor: '#D89AA5' }} />
+      </>
+    );
+  }
+  if (design === 'heart') {
+    return <TinyBowCharm className="pointer-events-none absolute -top-3 left-1/2 h-8 w-11 -translate-x-1/2 -rotate-3" />;
+  }
+  if (design === 'grid') {
+    return <PaperClipCharm className="pointer-events-none absolute -top-4 left-4 h-9 w-7 -rotate-6" />;
+  }
+  if (design === 'lined') {
+    return <StarCharm className="pointer-events-none absolute -right-2.5 -top-2.5 h-6 w-6 rotate-12" />;
   }
   return null;
 }
