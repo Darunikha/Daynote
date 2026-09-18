@@ -3,21 +3,29 @@ import { FONTS } from './entryStyle';
 /**
  * Freeform, editable sticky notes a user can drop anywhere on the journal
  * page — distinct from the corner-fixed decoration charms. Each design is a
- * different bit of scrapbook stationery (grid paper, a cloud-shaped note, a
- * washi-taped note…), not a plain rectangle.
+ * distinct bit of illustrated scrapbook stationery — its own paper texture,
+ * its own silhouette, and its own little cluster of charms — not a plain
+ * tinted rectangle.
  *
- * Keep in sync with backend/models/Journal.js.
+ * Keep the `value`s in sync with backend/models/Journal.js.
  */
 export const STICKY_NOTE_DESIGNS = [
-  { value: 'pastel', label: 'Pastel' },
-  { value: 'floral', label: 'Floral' },
-  { value: 'grid', label: 'Grid' },
-  { value: 'lined', label: 'Lined' },
-  { value: 'scalloped', label: 'Scalloped' },
+  { value: 'scallop-floral', label: 'Floral Scallop' },
+  { value: 'taped-note', label: 'Washi Note' },
+  { value: 'gingham-mint', label: 'Mint Gingham' },
+  { value: 'heart-floral', label: 'Floral Heart' },
+  { value: 'gingham-lavender', label: 'Lavender Gingham' },
+  { value: 'bear', label: 'Teddy Bear' },
+  { value: 'lined-floral', label: 'Lined Floral' },
+  { value: 'penguin', label: 'Penguin' },
+  { value: 'heart-bouquet', label: 'Heart Bouquet' },
+  { value: 'dotted-lavender', label: 'Dotted Lavender' },
+  { value: 'grid-floral', label: 'Grid Floral' },
+  { value: 'night-dot', label: 'Starry Night' },
   { value: 'cloud', label: 'Cloud' },
-  { value: 'heart', label: 'Heart' },
-  { value: 'animal', label: 'Animal' },
-  { value: 'taped', label: 'Taped' },
+  { value: 'gingham-bow', label: 'Bow Gingham' },
+  { value: 'lined-star', label: 'Starry Lined' },
+  { value: 'scallop-tulip', label: 'Tulip Scallop' },
 ];
 
 export const STICKY_NOTE_FONTS = FONTS;
@@ -30,74 +38,62 @@ export const STICKY_NOTE_SIZES = [
 
 export const STICKY_NOTE_ALIGN = ['left', 'center', 'right'];
 
-/** Soft pastel palette a plain "pastel" note cycles through. */
-export const PASTEL_COLORS = ['#FBEAEE', '#FFF3D9', '#E8F0E3', '#E6EEF6', '#F3E9F6', '#FDEFE3'];
-
 export const MAX_STICKY_NOTES = 10;
 
-/** Paper background per design — a swatch of real stationery, not a flat card. */
-export const getNoteBackgroundStyle = (design, color) => {
-  switch (design) {
-    case 'grid':
-      return {
-        backgroundColor: '#FBF8F0',
-        backgroundImage:
-          'linear-gradient(rgba(180,160,120,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(180,160,120,0.18) 1px, transparent 1px)',
-        backgroundSize: '14px 14px',
-      };
-    case 'lined':
-      return {
-        backgroundColor: '#FAF7F0',
-        backgroundImage: 'linear-gradient(rgba(150,130,110,0.22) 1px, transparent 1px)',
-        backgroundSize: '100% 20px',
-      };
-    case 'floral':
-      return {
-        backgroundColor: '#FCF4F3',
-        backgroundImage:
-          'radial-gradient(rgba(219,169,179,0.28) 1.6px, transparent 1.6px)',
-        backgroundSize: '16px 16px',
-      };
-    case 'scalloped':
-      return {
-        backgroundColor: '#FBEFEF',
-        backgroundImage: 'radial-gradient(rgba(219,169,179,0.24) 1.4px, transparent 1.4px)',
-        backgroundSize: '14px 14px',
-      };
-    case 'cloud':
-      return { backgroundColor: '#EAF1FA' };
-    case 'heart':
-      return { backgroundColor: '#FBE7EC' };
-    case 'animal':
-      return { backgroundColor: '#F5EFE1' };
-    case 'taped':
-      return { backgroundColor: '#FBF7EF' };
-    case 'pastel':
-    default:
-      return {
-        backgroundColor: color || PASTEL_COLORS[0],
-        backgroundImage:
-          'linear-gradient(rgba(255,255,255,0.55) 50%, transparent 50%), linear-gradient(90deg, rgba(255,255,255,0.55) 50%, transparent 50%)',
-        backgroundSize: '16px 16px',
-        backgroundBlendMode: 'multiply',
-      };
-  }
-};
+/** Text/ink color that reads well on a given design's background. */
+export const getNoteInkColor = (design) => (design === 'night-dot' || design === 'penguin' ? '#F3EFE8' : '#4A3830');
+
+// ---------------------------------------------------------------------------
+// Paper textures — small tiling patterns layered onto a base color so each
+// design reads as a real swatch of stationery instead of a flat tint.
+// ---------------------------------------------------------------------------
+
+const plain = (color) => ({ backgroundColor: color });
+
+const gingham = (color) => ({
+  backgroundColor: color,
+  backgroundImage:
+    'linear-gradient(rgba(255,255,255,0.55) 50%, transparent 50%), linear-gradient(90deg, rgba(255,255,255,0.55) 50%, transparent 50%)',
+  backgroundSize: '15px 15px',
+  backgroundBlendMode: 'multiply',
+});
+
+const dots = (color, dotColor) => ({
+  backgroundColor: color,
+  backgroundImage: `radial-gradient(${dotColor} 1.6px, transparent 1.6px)`,
+  backgroundSize: '15px 15px',
+});
+
+const lines = (color, lineColor = 'rgba(150,130,110,0.22)') => ({
+  backgroundColor: color,
+  backgroundImage: `linear-gradient(${lineColor} 1px, transparent 1px)`,
+  backgroundSize: '100% 20px',
+});
+
+const grid = (color) => ({
+  backgroundColor: color,
+  backgroundImage:
+    'linear-gradient(rgba(180,160,120,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(180,160,120,0.18) 1px, transparent 1px)',
+  backgroundSize: '14px 14px',
+});
+
+// ---------------------------------------------------------------------------
+// Silhouettes — clip-path builders shared across designs that need a die-cut
+// edge rather than a plain rounded rectangle.
+// ---------------------------------------------------------------------------
 
 /**
- * Builds a die-cut "pinking shears" outline for a w x h rectangle: every edge
- * is subdivided into equal bumps that bow outward, using relative quadratic
- * beziers so the direction of each bump (up/right/down/left) is explicit
- * rather than relying on SVG arc sweep-flag guesswork.
+ * A "pinking shears" outline for a w x h box: every edge is subdivided into
+ * equal bumps that notch inward, using relative quadratic beziers so the
+ * direction of each bump is explicit rather than left to arc sweep-flags.
+ * Bumps notch inward (not outward) because the element's own paint stops
+ * exactly at its box edge — an outward control point lands on nothing.
  */
 const buildScallopPath = (w, h, segment = Math.max(8, Math.min(w, h) / 7)) => {
   const nx = Math.max(2, Math.round(w / segment));
   const ny = Math.max(2, Math.round(h / segment));
   const dx = w / nx;
   const dy = h / ny;
-  // Bumps notch inward (toward the box interior) since the element's own
-  // paint stops exactly at its edge — an outward-bulging control point would
-  // land outside anything the browser has drawn and simply be invisible.
   let d = 'M0 0 ';
   for (let i = 0; i < nx; i += 1) d += `q ${dx / 2} ${dy / 2} ${dx} 0 `;
   for (let i = 0; i < ny; i += 1) d += `q ${-dx / 2} ${dy / 2} 0 ${dy} `;
@@ -126,17 +122,61 @@ const buildCloudPath = (w, h) => {
     .join('');
 };
 
+const HEART_PATH =
+  'path("M84 150C20 105 0 70 0 42 0 16 20 0 42 0 60 0 76 10 84 26 92 10 108 0 126 0 148 0 168 16 168 42 168 70 148 105 84 150Z")';
+
 /** Silhouette per design — irregular, hand-cut edges rather than a plain rectangle. */
 export const getNoteShapeStyle = (design, w = 172, h = 152) => {
   if (design === 'cloud') return { clipPath: `path("${buildCloudPath(w, h)}")` };
-  if (design === 'scalloped') return { clipPath: `path("${buildScallopPath(w, h)}")` };
-  if (design === 'heart') {
-    return {
-      clipPath:
-        'path("M84 150C20 105 0 70 0 42 0 16 20 0 42 0 60 0 76 10 84 26 92 10 108 0 126 0 148 0 168 16 168 42 168 70 148 105 84 150Z")',
-    };
+  if (design === 'scallop-floral' || design === 'scallop-tulip' || design === 'night-dot') {
+    return { clipPath: `path("${buildScallopPath(w, h)}")` };
   }
+  if (design === 'heart-floral' || design === 'heart-bouquet') return { clipPath: HEART_PATH };
+  if (design === 'penguin') return { borderRadius: '50% 50% 46% 46% / 58% 58% 42% 42%' };
   return { borderRadius: '9px 16px 11px 18px' };
+};
+
+/** Whether a design's charm accents are allowed to spill past the note's own box (ears, paws) rather than being clipped to it. */
+export const noteOverflowsBox = (design) => design === 'bear';
+
+/** Paper background per design — a swatch of real stationery, not a flat card. */
+export const getNoteBackgroundStyle = (design) => {
+  switch (design) {
+    case 'scallop-floral':
+      return dots('#FBEAF0', 'rgba(214,137,159,0.28)');
+    case 'taped-note':
+      return plain('#FBF7EF');
+    case 'gingham-mint':
+      return gingham('#DCEEDD');
+    case 'heart-floral':
+      return plain('#FBE1E8');
+    case 'gingham-lavender':
+      return gingham('#EDE6F5');
+    case 'bear':
+      return plain('#E8CFAE');
+    case 'lined-floral':
+      return lines('#FAF7F0');
+    case 'penguin':
+      return plain('#494B52');
+    case 'heart-bouquet':
+      return plain('#FCE4EC');
+    case 'dotted-lavender':
+      return dots('#EFE7F6', 'rgba(160,130,190,0.24)');
+    case 'grid-floral':
+      return grid('#FBF8F0');
+    case 'night-dot':
+      return dots('#33333C', 'rgba(255,255,255,0.55)');
+    case 'cloud':
+      return plain('#E7F1FA');
+    case 'gingham-bow':
+      return gingham('#D9EEDD');
+    case 'lined-star':
+      return lines('#FAF7F0');
+    case 'scallop-tulip':
+      return plain('#DCE8D2');
+    default:
+      return plain('#FBEAEE');
+  }
 };
 
 let counter = 0;
@@ -164,12 +204,12 @@ const PLACEMENTS = [
 ];
 
 /** A freshly placed note — a little off-center and gently tilted, never perfectly straight. */
-export const createStickyNote = (design = 'pastel', index = 0) => {
+export const createStickyNote = (design = 'scallop-floral', index = 0) => {
   const spot = PLACEMENTS[index % PLACEMENTS.length];
   return {
     id: nextId(),
     design,
-    color: design === 'pastel' ? PASTEL_COLORS[index % PASTEL_COLORS.length] : '',
+    color: '',
     text: '',
     x: spot.x,
     y: spot.y,

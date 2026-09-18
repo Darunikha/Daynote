@@ -94,15 +94,22 @@ const DIVIDERS = ['none', 'dashed', 'floral', 'scallop'];
 
 // Sticky notes — keep in sync with frontend/src/utils/stickyNotes.js
 const STICKY_NOTE_DESIGNS = [
-  'floral',
-  'grid',
-  'lined',
-  'scalloped',
+  'scallop-floral',
+  'taped-note',
+  'gingham-mint',
+  'heart-floral',
+  'gingham-lavender',
+  'bear',
+  'lined-floral',
+  'penguin',
+  'heart-bouquet',
+  'dotted-lavender',
+  'grid-floral',
+  'night-dot',
   'cloud',
-  'heart',
-  'animal',
-  'pastel',
-  'taped',
+  'gingham-bow',
+  'lined-star',
+  'scallop-tulip',
 ];
 const STICKY_NOTE_FONTS = ['clean', 'serif', 'handwritten', 'typewriter'];
 const STICKY_NOTE_SIZES = ['sm', 'md', 'lg'];
@@ -112,7 +119,7 @@ const MAX_STICKY_NOTES = 10;
 const stickyNoteSchema = new mongoose.Schema(
   {
     id: { type: String, required: true },
-    design: { type: String, enum: STICKY_NOTE_DESIGNS, default: 'pastel' },
+    design: { type: String, enum: STICKY_NOTE_DESIGNS, default: 'scallop-floral' },
     color: { type: String, default: '' },
     text: { type: String, default: '', trim: true, maxlength: 400 },
     x: { type: Number, default: 50, min: 0, max: 100 },

@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { Move, RotateCw, X, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
-import { TinyFlowerCharm, WashiTapeCharm, PaperClipCharm, TinyBowCharm, StarCharm } from './Charms';
+import { TinyFlowerCharm, WashiTapeCharm, TinyBowCharm, StarCharm } from './Charms';
 import {
   STICKY_NOTE_FONTS,
   STICKY_NOTE_SIZES,
   getNoteBackgroundStyle,
   getNoteShapeStyle,
+  getNoteInkColor,
+  noteOverflowsBox,
 } from '../utils/stickyNotes';
 
 const WIDTH = 172;
@@ -13,48 +15,90 @@ const HEIGHT = 152;
 
 /** The bit of illustrated stationery that makes each design read as physical, not a plain card. */
 function DesignAccent({ design }) {
-  if (design === 'floral') {
+  if (design === 'scallop-floral') {
     return (
       <>
-        <TinyFlowerCharm className="pointer-events-none absolute -right-3 -top-3 h-9 w-9" />
-        <TinyFlowerCharm className="pointer-events-none absolute -right-1 top-4 h-5 w-5 rotate-12 opacity-90" />
+        <TinyFlowerCharm className="pointer-events-none absolute left-2 top-1 h-8 w-8 -rotate-6" />
+        <TinyFlowerCharm className="pointer-events-none absolute left-9 top-7 h-4 w-4 rotate-12 opacity-90" />
+        <TinyFlowerCharm className="pointer-events-none absolute bottom-3 right-3 h-6 w-6 rotate-6" />
       </>
     );
   }
-  if (design === 'taped') {
-    return (
-      <span className="pointer-events-none absolute -top-3.5 left-1/2 -translate-x-1/2 -rotate-3">
-        <WashiTapeCharm className="h-6 w-20" />
-      </span>
-    );
-  }
-  if (design === 'animal') {
+  if (design === 'taped-note') {
     return (
       <>
+        <span className="pointer-events-none absolute -top-3.5 left-1/2 -translate-x-1/2 -rotate-3">
+          <WashiTapeCharm className="h-6 w-20" />
+        </span>
+        <TinyFlowerCharm className="pointer-events-none absolute bottom-2 right-2 h-6 w-6 rotate-6 opacity-90" />
+      </>
+    );
+  }
+  if (design === 'bear') {
+    return (
+      <>
+        {/* Ears: an outer circle with a smaller, centered inner-ear circle nested inside it. */}
+        <span className="pointer-events-none absolute -top-5 left-5 flex h-9 w-9 items-center justify-center rounded-full" style={{ backgroundColor: '#C9A074' }}>
+          <span className="h-4 w-4 rounded-full" style={{ backgroundColor: '#F0D8B8' }} />
+        </span>
+        <span className="pointer-events-none absolute -top-5 right-5 flex h-9 w-9 items-center justify-center rounded-full" style={{ backgroundColor: '#C9A074' }}>
+          <span className="h-4 w-4 rounded-full" style={{ backgroundColor: '#F0D8B8' }} />
+        </span>
+        {/* Face: two eyes, a muzzle, and a nose. */}
+        <span className="pointer-events-none absolute left-[32%] top-[42%] h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#4A3830' }} />
+        <span className="pointer-events-none absolute right-[32%] top-[42%] h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#4A3830' }} />
         <span
-          className="pointer-events-none absolute -top-3 left-5 h-7 w-7 rounded-full"
-          style={{ backgroundColor: '#F5EFE1', boxShadow: 'inset 0 0 0 1px rgb(0 0 0 / 0.06)' }}
+          className="pointer-events-none absolute left-1/2 top-[56%] h-8 w-10 -translate-x-1/2 rounded-full"
+          style={{ backgroundColor: '#F0D8B8' }}
         />
         <span
-          className="pointer-events-none absolute -top-3 right-5 h-7 w-7 rounded-full"
-          style={{ backgroundColor: '#F5EFE1', boxShadow: 'inset 0 0 0 1px rgb(0 0 0 / 0.06)' }}
-        />
-        <span className="pointer-events-none absolute left-7 top-[-5px] h-3.5 w-3.5 rounded-full" style={{ backgroundColor: '#E3B7B0' }} />
-        <span className="pointer-events-none absolute right-7 top-[-5px] h-3.5 w-3.5 rounded-full" style={{ backgroundColor: '#E3B7B0' }} />
-        <span
-          className="pointer-events-none absolute left-1/2 top-2.5 h-1.5 w-2 -translate-x-1/2 rounded-full"
-          style={{ backgroundColor: '#B98D7B' }}
+          className="pointer-events-none absolute left-1/2 top-[58%] h-2 w-2.5 -translate-x-1/2 rounded-full"
+          style={{ backgroundColor: '#7A5B45' }}
         />
       </>
     );
   }
-  if (design === 'scalloped') {
+  if (design === 'lined-floral') {
+    return <TinyFlowerCharm className="pointer-events-none absolute -right-2 -top-2 h-7 w-7 rotate-12" />;
+  }
+  if (design === 'penguin') {
     return (
       <>
-        <TinyFlowerCharm className="pointer-events-none absolute left-1 top-0 h-7 w-7 -rotate-6" />
-        <TinyFlowerCharm className="pointer-events-none absolute left-9 top-1 h-4 w-4 rotate-6 opacity-90" />
+        <span
+          className="pointer-events-none absolute left-1/2 top-[46%] h-16 w-11 -translate-x-1/2 rounded-full"
+          style={{ backgroundColor: '#EDEAE2' }}
+        />
+        <span className="pointer-events-none absolute left-3.5 top-[40%] h-14 w-6 rounded-full" style={{ backgroundColor: '#3A3A40' }} />
+        <span className="pointer-events-none absolute right-3.5 top-[40%] h-14 w-6 rounded-full" style={{ backgroundColor: '#3A3A40' }} />
+        <span className="pointer-events-none absolute left-[41%] top-[26%] h-2 w-2 rounded-full bg-white" />
+        <span className="pointer-events-none absolute right-[41%] top-[26%] h-2 w-2 rounded-full bg-white" />
+        <span
+          className="pointer-events-none absolute left-1/2 top-[32%] h-0 w-0 -translate-x-1/2"
+          style={{ borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '7px solid #E8A34D' }}
+        />
       </>
     );
+  }
+  if (design === 'heart-floral') {
+    return <TinyFlowerCharm className="pointer-events-none absolute -top-2 left-1/2 h-9 w-9 -translate-x-1/2 rotate-3" />;
+  }
+  if (design === 'heart-bouquet') {
+    return (
+      <>
+        <TinyFlowerCharm className="pointer-events-none absolute top-1 left-4 h-7 w-7 -rotate-12" />
+        <TinyFlowerCharm className="pointer-events-none absolute -top-2 left-1/2 h-8 w-8 -translate-x-1/2" />
+        <TinyFlowerCharm className="pointer-events-none absolute top-1 right-4 h-7 w-7 rotate-12 opacity-90" />
+      </>
+    );
+  }
+  if (design === 'dotted-lavender') {
+    return <TinyFlowerCharm className="pointer-events-none absolute -right-2 -top-2 h-6 w-6 rotate-6 opacity-90" />;
+  }
+  if (design === 'grid-floral') {
+    return <TinyFlowerCharm className="pointer-events-none absolute -right-3 -top-3 h-8 w-8 -rotate-6" />;
+  }
+  if (design === 'night-dot') {
+    return <StarCharm className="pointer-events-none absolute -right-2 -top-2 h-6 w-6 rotate-6" />;
   }
   if (design === 'cloud') {
     return (
@@ -65,14 +109,20 @@ function DesignAccent({ design }) {
       </>
     );
   }
-  if (design === 'heart') {
+  if (design === 'gingham-bow') {
     return <TinyBowCharm className="pointer-events-none absolute -top-3 left-1/2 h-8 w-11 -translate-x-1/2 -rotate-3" />;
   }
-  if (design === 'grid') {
-    return <PaperClipCharm className="pointer-events-none absolute -top-4 left-4 h-9 w-7 -rotate-6" />;
+  if (design === 'lined-star') {
+    return <StarCharm className="pointer-events-none absolute -right-2.5 -top-2.5 h-7 w-7 rotate-12" />;
   }
-  if (design === 'lined') {
-    return <StarCharm className="pointer-events-none absolute -right-2.5 -top-2.5 h-6 w-6 rotate-12" />;
+  if (design === 'scallop-tulip') {
+    return (
+      <>
+        <TinyFlowerCharm className="pointer-events-none absolute left-4 top-2 h-7 w-7 -rotate-6" />
+        <TinyFlowerCharm className="pointer-events-none absolute left-1/2 top-0 h-8 w-8 -translate-x-1/2" />
+        <TinyFlowerCharm className="pointer-events-none absolute right-4 top-2 h-7 w-7 rotate-6 opacity-90" />
+      </>
+    );
   }
   return null;
 }
@@ -145,8 +195,8 @@ export default function StickyNote({ note, editable, active, containerRef, regis
       }}
     >
       <div
-        className="relative h-full w-full overflow-hidden shadow-paper-lg"
-        style={{ ...getNoteBackgroundStyle(note.design, note.color), ...getNoteShapeStyle(note.design) }}
+        className={`relative h-full w-full shadow-paper-lg ${noteOverflowsBox(note.design) ? 'overflow-visible' : 'overflow-hidden'}`}
+        style={{ ...getNoteBackgroundStyle(note.design), ...getNoteShapeStyle(note.design) }}
         onPointerDown={() => editable && onActivate?.()}
       >
         <DesignAccent design={note.design} />
@@ -159,12 +209,12 @@ export default function StickyNote({ note, editable, active, containerRef, regis
             onFocus={() => onActivate?.()}
             placeholder="Write a little note…"
             className={`h-full w-full resize-none bg-transparent p-3.5 pt-5 outline-none placeholder:opacity-50 ${fontMeta.className} ${alignClass}`}
-            style={{ fontSize: sizeMeta.px, color: '#4A3830', lineHeight: 1.35 }}
+            style={{ fontSize: sizeMeta.px, color: getNoteInkColor(note.design), lineHeight: 1.35 }}
           />
         ) : (
           <p
             className={`h-full w-full overflow-hidden whitespace-pre-wrap p-3.5 pt-5 ${fontMeta.className} ${alignClass}`}
-            style={{ fontSize: sizeMeta.px, color: '#4A3830', lineHeight: 1.35 }}
+            style={{ fontSize: sizeMeta.px, color: getNoteInkColor(note.design), lineHeight: 1.35 }}
           >
             {note.text}
           </p>
