@@ -24,7 +24,7 @@ export default function StickyNotePicker({ count = 0, onAdd }) {
               style={{
                 borderColor: 'rgb(var(--border))',
                 ...getNoteBackgroundStyle(d.value),
-                ...getNoteShapeStyle(d.value === 'heart' ? 'plain' : d.value),
+                ...getNoteShapeStyle(d.value === 'heart' ? 'plain' : d.value, 36, 36),
               }}
               aria-hidden="true"
             />

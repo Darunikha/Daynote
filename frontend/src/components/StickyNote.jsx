@@ -51,19 +51,8 @@ function DesignAccent({ design }) {
   if (design === 'scalloped') {
     return (
       <>
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 172 12"
-          className="pointer-events-none absolute -top-[1px] left-0 h-3 w-full"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0 12 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 a10.75 10.75 0 0 0 21.5 0 a10.75 10.75 0 0 1 21.5 0 V0H0Z"
-            fill="#FBEFEF"
-          />
-        </svg>
-        <TinyFlowerCharm className="pointer-events-none absolute -left-2 -top-2 h-7 w-7 -rotate-6" />
-        <TinyFlowerCharm className="pointer-events-none absolute left-6 -top-1 h-4 w-4 rotate-6 opacity-90" />
+        <TinyFlowerCharm className="pointer-events-none absolute left-1 top-0 h-7 w-7 -rotate-6" />
+        <TinyFlowerCharm className="pointer-events-none absolute left-9 top-1 h-4 w-4 rotate-6 opacity-90" />
       </>
     );
   }

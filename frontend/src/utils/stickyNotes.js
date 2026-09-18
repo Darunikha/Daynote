@@ -84,9 +84,52 @@ export const getNoteBackgroundStyle = (design, color) => {
   }
 };
 
+/**
+ * Builds a die-cut "pinking shears" outline for a w x h rectangle: every edge
+ * is subdivided into equal bumps that bow outward, using relative quadratic
+ * beziers so the direction of each bump (up/right/down/left) is explicit
+ * rather than relying on SVG arc sweep-flag guesswork.
+ */
+const buildScallopPath = (w, h, segment = Math.max(8, Math.min(w, h) / 7)) => {
+  const nx = Math.max(2, Math.round(w / segment));
+  const ny = Math.max(2, Math.round(h / segment));
+  const dx = w / nx;
+  const dy = h / ny;
+  // Bumps notch inward (toward the box interior) since the element's own
+  // paint stops exactly at its edge — an outward-bulging control point would
+  // land outside anything the browser has drawn and simply be invisible.
+  let d = 'M0 0 ';
+  for (let i = 0; i < nx; i += 1) d += `q ${dx / 2} ${dy / 2} ${dx} 0 `;
+  for (let i = 0; i < ny; i += 1) d += `q ${-dx / 2} ${dy / 2} 0 ${dy} `;
+  for (let i = 0; i < nx; i += 1) d += `q ${-dx / 2} ${-dy / 2} ${-dx} 0 `;
+  for (let i = 0; i < ny; i += 1) d += `q ${dx / 2} ${-dy / 2} 0 ${-dy} `;
+  return `${d}Z`;
+};
+
+/** A full circle as a relative-arc path fragment, always wound the same way so overlapping circles union cleanly under the default nonzero fill rule. */
+const circleFragment = (cx, cy, r) =>
+  `M${cx - r} ${cy} a${r} ${r} 0 1 0 ${2 * r} 0 a${r} ${r} 0 1 0 ${-2 * r} 0 `;
+
+/** A fluffy cloud/sheep silhouette built from a cluster of overlapping circles, scaled to fit a w x h box (drawn at a 172 x 152 reference size). */
+const buildCloudPath = (w, h) => {
+  const sx = w / 172;
+  const sy = h / 152;
+  const s = Math.min(sx, sy);
+  return [
+    [40, 92, 40],
+    [86, 74, 50],
+    [132, 92, 40],
+    [62, 112, 38],
+    [110, 112, 38],
+  ]
+    .map(([cx, cy, r]) => circleFragment(cx * sx, cy * sy, r * s))
+    .join('');
+};
+
 /** Silhouette per design — irregular, hand-cut edges rather than a plain rectangle. */
-export const getNoteShapeStyle = (design) => {
-  if (design === 'cloud') return { borderRadius: '46% 54% 62% 38% / 55% 42% 58% 45%' };
+export const getNoteShapeStyle = (design, w = 172, h = 152) => {
+  if (design === 'cloud') return { clipPath: `path("${buildCloudPath(w, h)}")` };
+  if (design === 'scalloped') return { clipPath: `path("${buildScallopPath(w, h)}")` };
   if (design === 'heart') {
     return {
       clipPath:
