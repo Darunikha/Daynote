@@ -394,7 +394,7 @@ export default function JournalEditor() {
             value={form.content}
             onChange={(e) => update({ content: e.target.value })}
             placeholder={'Start writing whatever comes to mind…\nIt can be big or small, happy or sad.'}
-            className={`paper-lines w-full min-h-[360px] flex-1 resize-y bg-transparent text-[15px] leading-8 outline-none placeholder:opacity-60 ${getFont(form.font).className}`}
+            className={`paper-lines w-full min-h-[360px] flex-1 resize-y bg-transparent text-lg leading-8 outline-none placeholder:opacity-60 ${getFont(form.font).className}`}
             style={{ color: 'rgb(var(--text))' }}
           />
 
