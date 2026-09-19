@@ -5,7 +5,7 @@
   "description": "Daynote - a little space for your thoughts. A full-stack personal journaling app.",
   "scripts": {
     "install:all": "npm install --prefix backend && npm install --prefix frontend",
-    "dev": "concurrently -n api,web -c magenta,green \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev": "concurrently -n db,api,web -c yellow,magenta,green \"npm run mongo --prefix backend\" \"node backend/scripts/wait-for-mongo.cjs && npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
     "seed": "npm run seed --prefix backend",
