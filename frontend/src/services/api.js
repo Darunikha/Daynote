@@ -22,7 +22,9 @@ api.interceptors.request.use((config) => {
 export const getErrorMessage = (error) => {
   if (error?.response?.data?.message) return error.response.data.message;
   if (error?.code === 'ECONNABORTED') return 'That request took too long. Please try again.';
-  if (error?.message === 'Network Error') {
+  // A dev proxy or gateway answers 5xx with no JSON body when the backend is down
+  // (Vite's proxy sends a bare 500), so any message-less 5xx means "unreachable".
+  if (error?.message === 'Network Error' || error?.response?.status >= 500) {
     return 'We could not reach the server. Is the backend running?';
   }
   return 'Something went wrong. Please try again.';
