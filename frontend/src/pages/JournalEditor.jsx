@@ -72,6 +72,10 @@ export default function JournalEditor() {
   const fileRef = useRef(null);
   const contentRef = useRef(null);
 
+  // JSON snapshot of the form as last loaded/saved; anything different is unsaved work.
+  const baselineRef = useRef(isEdit ? null : JSON.stringify(form));
+  const dirtyRef = useRef(false);
+
   /** Insert an emoji at the current cursor position inside the textarea. */
   const insertEmoji = (emoji) => {
     const el = contentRef.current;
@@ -108,7 +112,7 @@ export default function JournalEditor() {
       .then((res) => {
         if (!active) return;
         const e = res.data.entry;
-        setForm({
+        const loaded = {
           title: e.title === 'Untitled entry' ? '' : e.title,
           content: e.content,
           paperStyle: e.paperStyle || 'plain',
@@ -127,7 +131,9 @@ export default function JournalEditor() {
           unlockDate: e.unlockDate ? toDateInput(e.unlockDate) : '',
           audioUrl: e.audioUrl || '',
           audioTranscript: e.audioTranscript || '',
-        });
+        };
+        baselineRef.current = JSON.stringify(loaded);
+        setForm(loaded);
         setIsLocked(Boolean(e.isLocked));
       })
       .catch((err) => active && setError(getErrorMessage(err)))
@@ -139,6 +145,29 @@ export default function JournalEditor() {
   }, [id, isEdit]);
 
   const update = (patch) => setForm((f) => ({ ...f, ...patch }));
+
+  dirtyRef.current =
+    baselineRef.current !== null &&
+    (JSON.stringify(form) !== baselineRef.current || lockPassword !== '');
+
+  // Warn before a refresh or tab close throws away unsaved writing.
+  useEffect(() => {
+    const onBeforeUnload = (e) => {
+      if (!dirtyRef.current) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, []);
+
+  /** Back arrow and Cancel: ask first when there is unsaved writing. */
+  const goBack = () => {
+    if (dirtyRef.current && !window.confirm('You have unsaved changes. Leave without saving?')) {
+      return;
+    }
+    navigate(-1);
+  };
 
   const addTag = (raw) => {
     const tag = raw.trim().toLowerCase();
@@ -196,6 +225,7 @@ export default function JournalEditor() {
         ? await journalService.update(id, payload)
         : await journalService.create(payload);
       toast.success(res.message);
+      dirtyRef.current = false;
       navigate(`/journal/${res.data.entry._id}`, { replace: true });
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -240,7 +270,7 @@ export default function JournalEditor() {
         <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={goBack}
             aria-label="Go back"
             className="muted rounded-full border p-2 transition-colors hover:text-[rgb(var(--heading))]"
           >
@@ -667,7 +697,7 @@ export default function JournalEditor() {
             </button>
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={goBack}
               disabled={saving}
               className="btn btn-ghost flex-1"
             >
