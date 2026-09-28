@@ -5,6 +5,7 @@ import PaperStylePicker from '../components/PaperStylePicker';
 import DecorationPicker from '../components/DecorationPicker';
 import PopoverPanel from '../components/PopoverPanel';
 import DecorationLayer from '../components/DecorationLayer';
+import JournalPageFrame from '../components/JournalPageFrame';
 import JournalPrompt from '../components/JournalPrompt';
 import EntryCustomizePanel from '../components/EntryCustomizePanel';
 import PhotoFrame from '../components/PhotoFrame';
@@ -282,6 +283,23 @@ export default function JournalEditor() {
     });
   };
 
+  // Title styling mirrors the read-only view's heading treatments (see
+  // JournalView.jsx) so the page looks the same while writing as it will
+  // once saved, and picks up the chosen font like the body text does.
+  const fontMeta = getFont(form.font);
+  const baseTitleClass = 'input mb-4 shrink-0 !border-transparent focus:!shadow-none !text-2xl sm:!text-3xl';
+  let titleClassName = `${baseTitleClass} !bg-transparent !px-0 ${fontMeta.className}`;
+  let titleStyle = { color: 'rgb(var(--heading))' };
+  if (form.headingStyle === 'handwritten') {
+    titleClassName = `${baseTitleClass} !bg-transparent !px-0 font-hand !text-3xl sm:!text-4xl`;
+  } else if (form.headingStyle === 'boxed') {
+    titleClassName = `${baseTitleClass} !rounded-lg !px-3 !py-1.5 ${fontMeta.className}`;
+    titleStyle = { backgroundColor: 'rgb(var(--accent-soft))', color: 'rgb(var(--heading))' };
+  } else if (form.headingStyle === 'underline') {
+    titleClassName = `${baseTitleClass} !border-x-0 !border-t-0 !rounded-none !bg-transparent !px-0 ${fontMeta.className}`;
+    titleStyle = { borderBottomWidth: 2, borderBottomColor: 'rgb(var(--accent))', color: 'rgb(var(--heading))' };
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -413,10 +431,11 @@ export default function JournalEditor() {
         </PopoverPanel>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start">
-        {/* Writing area — the focal point of the page */}
-        <div
-          className="card relative flex flex-col p-6 sm:p-10 lg:min-h-[78vh]"
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
+        {/* Writing area — the focal point of the page, styled as an actual
+            sheet of paper (see JournalPageFrame) rather than a plain panel. */}
+        <JournalPageFrame
+          className="flex flex-col p-6 sm:p-10 lg:min-h-[82vh]"
           style={getPaperBackground(form.paperStyle)}
         >
           <DecorationLayer
@@ -433,8 +452,8 @@ export default function JournalEditor() {
             onChange={(e) => update({ title: e.target.value })}
             placeholder="Title (optional)"
             maxLength={140}
-            className="input mb-4 shrink-0 !border-transparent !bg-transparent !px-0 font-serif !text-2xl focus:!shadow-none sm:!text-3xl"
-            style={{ color: 'rgb(var(--heading))' }}
+            className={titleClassName}
+            style={titleStyle}
           />
 
           {!isEdit && <JournalPrompt />}
@@ -448,7 +467,7 @@ export default function JournalEditor() {
             value={form.content}
             onChange={(e) => update({ content: e.target.value })}
             placeholder={'Start writing whatever comes to mind…\nIt can be big or small, happy or sad.'}
-            className={`paper-lines w-full min-h-[360px] flex-1 resize-y bg-transparent text-lg leading-8 outline-none placeholder:opacity-60 ${getFont(form.font).className}`}
+            className={`paper-lines w-full min-h-[420px] flex-1 resize-y bg-transparent text-lg leading-8 outline-none placeholder:opacity-60 ${getFont(form.font).className}`}
             style={{ color: 'rgb(var(--text))' }}
           />
 
@@ -477,11 +496,12 @@ export default function JournalEditor() {
             editable
             onChange={(stickyNotes) => update({ stickyNotes })}
           />
-        </div>
+        </JournalPageFrame>
 
-        {/* Side panel — the remaining, less-frequently-touched settings */}
-        <div className="space-y-3">
-          <section className="card p-4">
+        {/* Side panel — the remaining, less-frequently-touched settings,
+            kept narrow and quiet so the page stays the main event. */}
+        <div className="space-y-2.5">
+          <section className="card p-3.5">
             <label htmlFor="date" className="label !mb-1 !text-[11px]">
               Date
             </label>
@@ -496,9 +516,9 @@ export default function JournalEditor() {
           </section>
 
           {/* Time Capsule section */}
-          <section className="card p-4">
-            <h2 className="mb-2 font-serif text-sm flex items-center gap-1.5">
-              <Hourglass size={14} className="text-amber-600 dark:text-amber-400" />
+          <section className="card p-3.5">
+            <h2 className="mb-2 font-serif text-xs flex items-center gap-1.5">
+              <Hourglass size={13} className="text-amber-600 dark:text-amber-400" />
               Time Capsule
             </h2>
             <div className="space-y-3">
@@ -541,9 +561,9 @@ export default function JournalEditor() {
           </section>
 
           {/* Password Protection section */}
-          <section className="card p-4">
-            <h2 className="mb-2 font-serif text-sm flex items-center gap-1.5">
-              <KeyRound size={14} className="text-[rgb(var(--brandy))]" />
+          <section className="card p-3.5">
+            <h2 className="mb-2 font-serif text-xs flex items-center gap-1.5">
+              <KeyRound size={13} className="text-[rgb(var(--brandy))]" />
               Password Lock
             </h2>
             {isLocked ? (
@@ -575,8 +595,8 @@ export default function JournalEditor() {
             )}
           </section>
 
-          <section className="card p-4">
-            <h2 className="mb-2 font-serif text-sm">Tags</h2>
+          <section className="card p-3.5">
+            <h2 className="mb-2 font-serif text-xs">Tags</h2>
 
             {form.tags.length > 0 && (
               <ul className="mb-3 flex flex-wrap gap-2">
@@ -634,8 +654,8 @@ export default function JournalEditor() {
           </section>
 
           {/* Image upload — only shown when the server supports it */}
-          <section className="card p-4">
-            <h2 className="mb-2 font-serif text-sm">Photo</h2>
+          <section className="card p-3.5">
+            <h2 className="mb-2 font-serif text-xs">Photo</h2>
 
             {form.imageUrl ? (
               <div className="space-y-3">
