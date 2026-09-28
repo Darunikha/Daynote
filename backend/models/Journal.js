@@ -116,6 +116,20 @@ const STICKY_NOTE_SIZES = ['sm', 'md', 'lg'];
 const STICKY_NOTE_ALIGN = ['left', 'center', 'right'];
 const MAX_STICKY_NOTES = 10;
 
+// A single scrapbook charm placed freely on the page — a movable counterpart
+// to the old fixed-corner `decorations` list, keyed by `type` rather than
+// `design` so it can share DECORATIONS with the legacy field below.
+const decorationPlacementSchema = new mongoose.Schema(
+  {
+    id: { type: String, required: true },
+    type: { type: String, enum: DECORATIONS },
+    x: { type: Number, default: 50, min: 0, max: 100 },
+    y: { type: Number, default: 50, min: 0, max: 100 },
+    rotation: { type: Number, default: 0, min: -180, max: 180 },
+  },
+  { _id: false }
+);
+
 const stickyNoteSchema = new mongoose.Schema(
   {
     id: { type: String, required: true },
@@ -151,6 +165,9 @@ const journalSchema = new mongoose.Schema(
     // Legacy single-charm field, kept only so entries saved before multi-charm
     // support still read back correctly (see withDecorations in the controller).
     decoration: { type: String, enum: DECORATIONS, default: 'none' },
+    // Kept in sync with decorationPlacements (just the type of each one) so
+    // anything that only needs "which charms" — the dashboard card preview,
+    // search — doesn't need to know about freeform placement at all.
     decorations: {
       type: [{ type: String, enum: DECORATIONS }],
       default: [],
@@ -159,6 +176,13 @@ const journalSchema = new mongoose.Schema(
           0,
           MAX_DECORATIONS
         ),
+    },
+    // Where each charm actually sits on the page — the user can drag these
+    // anywhere instead of being stuck with the old fixed-corner placement.
+    decorationPlacements: {
+      type: [decorationPlacementSchema],
+      default: [],
+      set: (placements) => (Array.isArray(placements) ? placements : []).slice(0, MAX_DECORATIONS),
     },
     tags: {
       type: [String],

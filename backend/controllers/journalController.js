@@ -20,16 +20,38 @@ const { ok, fail, asyncHandler } = require('../utils/response');
 /** Every query is locked to the signed-in user, so entries can never leak across accounts. */
 const scoped = (req, extra = {}) => ({ userId: req.user._id, ...extra });
 
+// Scattered starting spots for charms that predate freeform placement, so an
+// entry saved before drag-to-move support still shows its charms somewhere
+// sensible (spread around the edges) instead of stacked in one corner.
+const LEGACY_DECORATION_SPOTS = [
+  { x: 12, y: 8 },
+  { x: 88, y: 8 },
+  { x: 12, y: 90 },
+  { x: 88, y: 90 },
+  { x: 50, y: 6 },
+  { x: 50, y: 92 },
+];
+
 /**
  * Entries saved before multi-charm support only have the old singular
- * `decoration` field. Fold it into `decorations` on the way out so old
- * entries still show their charm without needing a data migration.
+ * `decoration` field, and entries saved before drag-to-move support have
+ * `decorations` (just a list of charm types) but no `decorationPlacements`.
+ * Fold both forward on the way out so old entries still show their charms
+ * without needing a one-off data migration.
  */
 const withDecorations = (obj) => {
   if ((!obj.decorations || obj.decorations.length === 0) && obj.decoration && obj.decoration !== 'none') {
     obj.decorations = [obj.decoration];
   } else if (!obj.decorations) {
     obj.decorations = [];
+  }
+  if (!obj.decorationPlacements || obj.decorationPlacements.length === 0) {
+    obj.decorationPlacements = obj.decorations.map((type, i) => ({
+      id: `legacy-${i}-${type}`,
+      type,
+      ...LEGACY_DECORATION_SPOTS[i % LEGACY_DECORATION_SPOTS.length],
+      rotation: 0,
+    }));
   }
   return obj;
 };
@@ -227,10 +249,33 @@ const pickBody = (body) => {
   if (body.content !== undefined) out.content = body.content;
   if (body.mood !== undefined) out.mood = body.mood;
   if (body.paperStyle !== undefined) out.paperStyle = body.paperStyle;
-  if (body.decorations !== undefined) {
+  if (body.decorationPlacements !== undefined) {
+    // At most one placement per charm type, same limit the old checkbox
+    // picker enforced — a type can be moved anywhere, not duplicated.
+    const seenTypes = new Set();
+    out.decorationPlacements = (Array.isArray(body.decorationPlacements) ? body.decorationPlacements : [])
+      .filter((p) => p && typeof p === 'object' && p.type && p.type !== 'none' && !seenTypes.has(p.type) && seenTypes.add(p.type))
+      .slice(0, MAX_DECORATIONS)
+      .map((p, i) => ({
+        id: p.id ? String(p.id) : `charm-${Date.now()}-${i}`,
+        type: p.type,
+        x: Number.isFinite(p.x) ? Math.min(100, Math.max(0, p.x)) : 50,
+        y: Number.isFinite(p.y) ? Math.min(100, Math.max(0, p.y)) : 50,
+        rotation: Number.isFinite(p.rotation) ? Math.min(180, Math.max(-180, p.rotation)) : 0,
+      }));
+    out.decorations = out.decorationPlacements.map((p) => p.type);
+  } else if (body.decorations !== undefined) {
+    // Legacy path: a client sending only charm types, no positions.
     out.decorations = [
       ...new Set((Array.isArray(body.decorations) ? body.decorations : []).filter((d) => d && d !== 'none')),
     ].slice(0, MAX_DECORATIONS);
+    out.decorationPlacements = out.decorations.map((type, i) => ({
+      id: `legacy-${i}-${type}`,
+      type,
+      x: 50,
+      y: 50,
+      rotation: 0,
+    }));
   }
   if (body.font !== undefined) out.font = body.font;
   if (body.layout !== undefined) out.layout = body.layout;

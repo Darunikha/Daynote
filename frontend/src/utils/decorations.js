@@ -221,3 +221,43 @@ export const DECORATION_VALUES = DECORATIONS.map((d) => d.value);
 const DECORATION_MAP = Object.fromEntries(DECORATIONS.map((d) => [d.value, d]));
 
 export const getDecoration = (value) => DECORATION_MAP[value] || DECORATION_MAP.none;
+
+// ---------------------------------------------------------------------------
+// Freeform placement — a charm no longer has to sit in its default corner.
+// Adding one still starts it near the corner it always used to hang from
+// (so the page doesn't jump), but from there it can be dragged anywhere.
+// ---------------------------------------------------------------------------
+
+const CORNER_SPOTS = {
+  'top-left': { x: 12, y: 8 },
+  'top-right': { x: 88, y: 8 },
+  'bottom-left': { x: 12, y: 90 },
+  'bottom-right': { x: 88, y: 90 },
+};
+// Nudges applied when more than one charm starts in the same corner, so a
+// freshly added charm doesn't land exactly on top of one already there.
+const CORNER_JITTER = [0, 8, -8, 14, -14, 5];
+
+/** A sensible starting spot for a newly added charm, based on its old fixed corner. */
+export const defaultDecorationSpot = (type, index = 0) => {
+  const meta = getDecoration(type);
+  const base = CORNER_SPOTS[meta.corner] || { x: 50, y: 50 };
+  const jitter = CORNER_JITTER[index % CORNER_JITTER.length];
+  return {
+    x: Math.min(94, Math.max(6, base.x + (meta.corner?.endsWith('left') ? jitter : -jitter))),
+    y: Math.min(94, Math.max(6, base.y)),
+  };
+};
+
+let placementCounter = 0;
+const nextPlacementId = () => {
+  placementCounter += 1;
+  return `charm-${Date.now()}-${placementCounter}`;
+};
+
+/** A freshly added, freely-movable charm — starts near its usual corner. */
+export const createDecorationPlacement = (type, index = 0) => {
+  const meta = getDecoration(type);
+  const spot = defaultDecorationSpot(type, index);
+  return { id: nextPlacementId(), type, x: spot.x, y: spot.y, rotation: meta.rotate ?? 0 };
+};

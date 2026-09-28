@@ -4,14 +4,14 @@ import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound, Hourglass, M
 import PaperStylePicker from '../components/PaperStylePicker';
 import DecorationPicker from '../components/DecorationPicker';
 import PopoverPanel from '../components/PopoverPanel';
-import EntryCharm from '../components/EntryCharm';
+import DecorationLayer from '../components/DecorationLayer';
 import JournalPrompt from '../components/JournalPrompt';
 import EntryCustomizePanel from '../components/EntryCustomizePanel';
 import PhotoFrame from '../components/PhotoFrame';
 import StickyNotesLayer from '../components/StickyNotesLayer';
 import StickyNotePicker from '../components/StickyNotePicker';
 import { getPaperBackground, getPaperStyleMeta } from '../utils/paperStyles';
-import { getDecoration } from '../utils/decorations';
+import { getDecoration, createDecorationPlacement } from '../utils/decorations';
 import { getFont, getLayout, PHOTO_STYLES } from '../utils/entryStyle';
 import { createStickyNote, getNoteBackgroundStyle } from '../utils/stickyNotes';
 import VoiceRecorder from '../components/VoiceRecorder';
@@ -30,7 +30,7 @@ const EMPTY = {
   title: '',
   content: '',
   paperStyle: 'plain',
-  decorations: [],
+  decorationPlacements: [],
   font: 'clean',
   layout: 'classic',
   photoStyle: 'plain',
@@ -116,7 +116,7 @@ export default function JournalEditor() {
           title: e.title === 'Untitled entry' ? '' : e.title,
           content: e.content,
           paperStyle: e.paperStyle || 'plain',
-          decorations: e.decorations || [],
+          decorationPlacements: e.decorationPlacements || [],
           font: e.font || 'clean',
           layout: e.layout || 'classic',
           photoStyle: e.photoStyle || 'plain',
@@ -255,13 +255,32 @@ export default function JournalEditor() {
     );
   }
 
+  // DecorationPicker only deals in "which charm types are active" — the
+  // freeform x/y/rotation for each one lives in decorationPlacements and is
+  // set by dragging it on the page itself.
+  const decorationTypes = form.decorationPlacements.map((p) => p.type);
   const decorationLabel =
-    form.decorations.length === 0
+    decorationTypes.length === 0
       ? 'None'
-      : form.decorations.length === 1
-      ? getDecoration(form.decorations[0]).label
-      : `${form.decorations.length} charms`;
-  const firstDecoration = form.decorations[0] ? getDecoration(form.decorations[0]) : null;
+      : decorationTypes.length === 1
+      ? getDecoration(decorationTypes[0]).label
+      : `${decorationTypes.length} charms`;
+  const firstDecoration = decorationTypes[0] ? getDecoration(decorationTypes[0]) : null;
+
+  /**
+   * Adding a type creates a new placement near its old default corner;
+   * removing one drops its placement. Anything already placed keeps
+   * whatever spot the user dragged it to.
+   */
+  const setDecorationTypes = (nextTypes) => {
+    setForm((f) => {
+      const existingByType = Object.fromEntries(f.decorationPlacements.map((p) => [p.type, p]));
+      const decorationPlacements = nextTypes.map(
+        (type, i) => existingByType[type] || createDecorationPlacement(type, i)
+      );
+      return { ...f, decorationPlacements };
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -340,18 +359,19 @@ export default function JournalEditor() {
               ) : (
                 <Ban size={13} style={{ color: 'rgb(var(--text-muted))' }} />
               )}
-              {form.decorations.length > 1 && (
+              {decorationTypes.length > 1 && (
                 <span
                   className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-bold"
                   style={{ backgroundColor: 'rgb(var(--accent))', color: '#4A3038' }}
                 >
-                  +{form.decorations.length - 1}
+                  +{decorationTypes.length - 1}
                 </span>
               )}
             </span>
           }
         >
-          <DecorationPicker values={form.decorations} onChange={(decorations) => update({ decorations })} />
+          <DecorationPicker values={decorationTypes} onChange={setDecorationTypes} />
+          <p className="muted mt-2 text-[11px]">Drag a charm on the page to move it.</p>
         </PopoverPanel>
 
         <PopoverPanel
@@ -399,7 +419,11 @@ export default function JournalEditor() {
           className="card relative flex flex-col p-6 sm:p-10 lg:min-h-[78vh]"
           style={getPaperBackground(form.paperStyle)}
         >
-          <EntryCharm values={form.decorations} />
+          <DecorationLayer
+            placements={form.decorationPlacements}
+            editable
+            onChange={(decorationPlacements) => update({ decorationPlacements })}
+          />
           <label htmlFor="title" className="sr-only">
             Title
           </label>

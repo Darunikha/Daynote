@@ -11,7 +11,7 @@ import { getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { formatLongDate, toParagraphs, readingTime } from '../utils/format';
 import { getPaperBackground } from '../utils/paperStyles';
-import EntryCharm from '../components/EntryCharm';
+import DecorationLayer from '../components/DecorationLayer';
 import PhotoFrame from '../components/PhotoFrame';
 import StickyNotesLayer from '../components/StickyNotesLayer';
 import { getFont } from '../utils/entryStyle';
@@ -261,11 +261,11 @@ export default function JournalView() {
 
       {/* The entry itself */}
       <div className="relative">
-        <EntryCharm values={entry.decorations} />
         <article
           className={`card relative overflow-hidden ${isMinimal ? 'p-6 sm:p-8' : 'p-6 sm:p-10'}`}
           style={getPaperBackground(entry.paperStyle)}
         >
+          <DecorationLayer placements={entry.decorationPlacements} />
         {!isMinimal && (
           <Flower className="pointer-events-none absolute -right-2 -top-2 h-16 w-16 text-[rgb(var(--accent))] opacity-25" />
         )}
