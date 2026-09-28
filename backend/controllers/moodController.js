@@ -10,7 +10,9 @@ const dayOf = (value) => {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 };
 
-// POST /api/moods — record (or update) how someone feels on a given day.
+// POST /api/moods — log how someone feels right now. People rarely feel
+// just one thing in a day, so this always adds a new check-in rather than
+// overwriting whatever was already logged for that day.
 const checkIn = asyncHandler(async (req, res) => {
   const { mood, date, note } = req.body;
 
@@ -18,20 +20,45 @@ const checkIn = asyncHandler(async (req, res) => {
     return fail(res, 'That mood is not one we recognise', 400);
   }
 
-  const day = dayOf(date);
-  const entry = await Mood.findOneAndUpdate(
-    { userId: req.user._id, date: day },
-    { mood, note: note ?? '' },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  const entry = await Mood.create({
+    userId: req.user._id,
+    date: dayOf(date),
+    mood,
+    note: note ?? '',
+  });
 
   return ok(res, { message: 'Mood recorded', data: { mood: entry } });
 });
 
-// GET /api/moods/today
+// PATCH /api/moods/:id — correct a single check-in (wrong sticker, typo in the note).
+const updateMood = asyncHandler(async (req, res) => {
+  const { mood, note } = req.body;
+  if (mood !== undefined && !MOODS.includes(mood)) {
+    return fail(res, 'That mood is not one we recognise', 400);
+  }
+
+  const patch = {};
+  if (mood !== undefined) patch.mood = mood;
+  if (note !== undefined) patch.note = note;
+
+  const entry = await Mood.findOneAndUpdate(scoped(req, { _id: req.params.id }), patch, { new: true });
+  if (!entry) return fail(res, 'Mood check-in not found', 404);
+
+  return ok(res, { message: 'Mood updated', data: { mood: entry } });
+});
+
+// DELETE /api/moods/:id — remove a single check-in.
+const deleteMood = asyncHandler(async (req, res) => {
+  const entry = await Mood.findOneAndDelete(scoped(req, { _id: req.params.id }));
+  if (!entry) return fail(res, 'Mood check-in not found', 404);
+
+  return ok(res, { message: 'Mood removed', data: { mood: entry } });
+});
+
+// GET /api/moods/today — every check-in logged so far today.
 const getToday = asyncHandler(async (req, res) => {
-  const entry = await Mood.findOne(scoped(req, { date: dayOf() }));
-  return ok(res, { message: 'Today’s mood fetched', data: { mood: entry || null } });
+  const moods = await Mood.find(scoped(req, { date: dayOf() })).sort({ createdAt: 1 }).lean();
+  return ok(res, { message: 'Today’s moods fetched', data: { moods } });
 });
 
 // GET /api/moods?from=&to=
@@ -84,4 +111,4 @@ const getStats = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { checkIn, getToday, listMoods, getStats };
+module.exports = { checkIn, updateMood, deleteMood, getToday, listMoods, getStats };

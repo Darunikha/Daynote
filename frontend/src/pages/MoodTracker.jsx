@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 import Calendar from '../components/Calendar';
 import MoodSelector from '../components/MoodSelector';
 import { MoodDonut, MoodBars, MoodLegend } from '../components/MoodChart';
@@ -12,7 +12,7 @@ import moodService from '../services/moodService';
 import { getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { getMood, moodInsight } from '../utils/moods';
-import { MONTH_NAMES, startOfMonth, endOfMonth, toDateInput, isSameDay, formatDate } from '../utils/format';
+import { MONTH_NAMES, startOfMonth, endOfMonth, toDateInput, isSameDay, formatDate, formatTime } from '../utils/format';
 
 /** Adds two {mood,count}[] distributions together and recomputes percent/topMood. */
 const mergeDistributions = (a = [], b = []) => {
@@ -39,6 +39,7 @@ export default function MoodTracker() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
+  const [removingId, setRemovingId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -66,20 +67,38 @@ export default function MoodTracker() {
     load();
   }, [load]);
 
-  /** Records a mood for whichever date is currently selected on the calendar. */
+  /**
+   * Adds another mood check-in for whichever date is selected on the
+   * calendar. This never overwrites what's already logged for that day —
+   * people rarely feel just one thing, so a day can hold several.
+   */
   const recordMood = async (mood) => {
     if (!mood || checkingIn) return;
     setCheckingIn(true);
     try {
       await moodService.checkIn({ mood, date: toDateInput(selectedDate) });
       toast.success(
-        isSameDay(selectedDate, today) ? 'Mood recorded' : `Mood recorded for ${formatDate(selectedDate)}`
+        isSameDay(selectedDate, today) ? 'Mood added' : `Mood added for ${formatDate(selectedDate)}`
       );
       load();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
       setCheckingIn(false);
+    }
+  };
+
+  /** Removes a single check-in without touching the rest of that day's moods. */
+  const removeMood = async (id) => {
+    if (removingId) return;
+    setRemovingId(id);
+    try {
+      await moodService.remove(id);
+      load();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setRemovingId(null);
     }
   };
 
@@ -104,8 +123,13 @@ export default function MoodTracker() {
   const daysNoted = Object.keys(entriesByDay).length;
 
   const selectedIsToday = isSameDay(selectedDate, today);
-  const selectedCheckin = moodCheckins.find((m) => isSameDay(m.date, selectedDate)) || null;
-  const selectedMoodMeta = selectedCheckin ? getMood(selectedCheckin.mood) : null;
+  const selectedCheckins = useMemo(
+    () =>
+      moodCheckins
+        .filter((m) => isSameDay(m.date, selectedDate))
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
+    [moodCheckins, selectedDate]
+  );
   const selectedDateLabel = selectedIsToday ? 'today' : `on ${formatDate(selectedDate)}`;
 
   return (
@@ -166,13 +190,44 @@ export default function MoodTracker() {
               How did you feel {selectedDateLabel}?
             </h2>
             <p className="muted mb-4 text-sm">
-              {selectedMoodMeta
-                ? `Logged as ${selectedMoodMeta.label.toLowerCase()} — tap another sticker to change it.`
+              {selectedCheckins.length
+                ? "Feeling more than one thing? Tap another sticker to add it — you're not limited to one."
                 : selectedIsToday
                   ? 'Pick whatever sticker fits right now, no need to overthink it.'
                   : 'Missed this one? Pick a sticker and it will be saved for that day.'}
             </p>
-            <MoodSelector value={selectedCheckin?.mood || ''} onChange={recordMood} />
+
+            {selectedCheckins.length > 0 && (
+              <ul className="mb-4 flex flex-wrap gap-2">
+                {selectedCheckins.map((checkin) => {
+                  const meta = getMood(checkin.mood);
+                  return (
+                    <li
+                      key={checkin._id}
+                      className="flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2 text-xs"
+                      style={{ backgroundColor: meta.soft, color: 'rgb(var(--heading))' }}
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
+                        <meta.Icon className="h-full w-full" />
+                      </span>
+                      <span>{meta.label}</span>
+                      <span className="muted">{formatTime(checkin.createdAt)}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeMood(checkin._id)}
+                        disabled={removingId === checkin._id}
+                        aria-label={`Remove ${meta.label} check-in at ${formatTime(checkin.createdAt)}`}
+                        className="muted rounded-full p-0.5 transition-colors hover:text-[rgb(var(--heading))] disabled:opacity-40"
+                      >
+                        <X size={11} />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            <MoodSelector value="" onChange={recordMood} />
           </section>
           <section className="card relative overflow-hidden p-5 sm:p-6">
             <h2 className="mb-5 font-serif text-lg">Mood Insights</h2>

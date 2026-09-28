@@ -8,6 +8,10 @@ export const formatDate = (value, opts = {}) =>
     ...opts,
   });
 
+/** "9:41 am" — used where several timestamped things share one day, e.g. mood check-ins. */
+export const formatTime = (value) =>
+  new Date(value).toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit' }).toLowerCase();
+
 export const formatLongDate = (value) =>
   new Date(value).toLocaleDateString('en-GB', {
     weekday: 'long',
