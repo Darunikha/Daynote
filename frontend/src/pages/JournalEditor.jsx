@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound, Hourglass, Mic, Ban } from 'lucide-react';
+import { ArrowLeft, ImagePlus, Star, X, Plus, Save, Lock, KeyRound, Hourglass, Mic, Ban, SlidersHorizontal, CalendarDays } from 'lucide-react';
 import PaperStylePicker from '../components/PaperStylePicker';
 import DecorationPicker from '../components/DecorationPicker';
 import PopoverPanel from '../components/PopoverPanel';
@@ -69,6 +69,11 @@ export default function JournalEditor() {
   const [uploading, setUploading] = useState(false);
   const [uploadEnabled, setUploadEnabled] = useState(false);
   const [error, setError] = useState('');
+  // Closed by default so the page — not a settings rail — is what you see
+  // first; Date/Time Capsule/Password/Tags/Photo live here since they're
+  // touched far less often than the paper/font/decoration/sticky-note
+  // choices, which stay in the always-visible toolbar above the page.
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const fileRef = useRef(null);
   const contentRef = useRef(null);
@@ -161,6 +166,16 @@ export default function JournalEditor() {
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, []);
+
+  // Escape closes the details drawer, matching the backdrop click.
+  useEffect(() => {
+    if (!detailsOpen) return undefined;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setDetailsOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [detailsOpen]);
 
   /** Back arrow and Cancel: ask first when there is unsaved writing. */
   const goBack = () => {
@@ -429,11 +444,32 @@ export default function JournalEditor() {
             }
           />
         </PopoverPanel>
+
+        {/* Everything touched far less often than paper/font/decorations —
+            time capsule, password lock, tags, photo upload — lives behind
+            this one button instead of a permanent side rail, so the page
+            stays the main event. */}
+        <button
+          type="button"
+          onClick={() => setDetailsOpen(true)}
+          className="btn btn-ghost ml-auto !py-2"
+        >
+          <SlidersHorizontal size={14} aria-hidden="true" />
+          Details
+          {(form.tags.length > 0 || form.imageUrl || form.isTimeCapsule || isLocked) && (
+            <span
+              className="ml-0.5 h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: 'rgb(var(--accent))' }}
+              aria-hidden="true"
+            />
+          )}
+        </button>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start">
-        {/* Writing area — the focal point of the page, styled as an actual
-            sheet of paper (see JournalPageFrame) rather than a plain panel. */}
+      {/* The writing area is the only thing on the page by default — no grid
+          split, no permanent rail — styled as an actual sheet of paper (see
+          JournalPageFrame) rather than a plain panel. */}
+      <div>
         <JournalPageFrame
           className="flex flex-col p-6 sm:p-10 lg:min-h-[82vh]"
           style={getPaperBackground(form.paperStyle)}
@@ -455,6 +491,24 @@ export default function JournalEditor() {
             className={titleClassName}
             style={titleStyle}
           />
+
+          {/* Date sits on the page itself, next to the title, like a real
+              journal entry heading — not tucked away in a settings panel. */}
+          <label htmlFor="date" className="sr-only">
+            Date
+          </label>
+          <div className="relative mb-5 inline-flex w-fit shrink-0 items-center gap-1.5">
+            <CalendarDays size={14} style={{ color: 'rgb(var(--text-muted))' }} aria-hidden="true" />
+            <input
+              id="date"
+              type="date"
+              value={form.date}
+              max={toDateInput()}
+              onChange={(e) => update({ date: e.target.value })}
+              className={`bg-transparent text-sm outline-none ${fontMeta.className}`}
+              style={{ color: 'rgb(var(--text-muted))' }}
+            />
+          </div>
 
           {!isEdit && <JournalPrompt />}
 
@@ -497,23 +551,39 @@ export default function JournalEditor() {
             onChange={(stickyNotes) => update({ stickyNotes })}
           />
         </JournalPageFrame>
+      </div>
 
-        {/* Side panel — the remaining, less-frequently-touched settings,
-            kept narrow and quiet so the page stays the main event. */}
-        <div className="space-y-2.5">
-          <section className="card p-3.5">
-            <label htmlFor="date" className="label !mb-1 !text-[11px]">
-              Date
-            </label>
-            <input
-              id="date"
-              type="date"
-              value={form.date}
-              max={toDateInput()}
-              onChange={(e) => update({ date: e.target.value })}
-              className="input !py-2 !text-sm"
-            />
-          </section>
+      {/* Details drawer — Time Capsule, Password Lock, Tags, Photo. Slides
+          in over the page instead of permanently sharing its width, so
+          closing it (or never opening it) gives the page the full screen. */}
+      {detailsOpen && (
+        <button
+          type="button"
+          aria-label="Close details"
+          onClick={() => setDetailsOpen(false)}
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
+        />
+      )}
+      <div
+        className={`fixed inset-y-0 right-0 z-50 w-[320px] max-w-[88vw] overflow-y-auto border-l shadow-paper-lg transition-transform duration-300 ${
+          detailsOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}
+        style={{ backgroundColor: 'rgb(var(--bg))', borderColor: 'rgb(var(--border))' }}
+      >
+        <div className="space-y-2.5 p-4">
+          <div className="mb-1 flex items-center justify-between">
+            <h2 className="font-serif text-lg" style={{ color: 'rgb(var(--heading))' }}>
+              Details
+            </h2>
+            <button
+              type="button"
+              onClick={() => setDetailsOpen(false)}
+              aria-label="Close details"
+              className="muted rounded-full border p-1.5 transition-colors hover:text-[rgb(var(--heading))]"
+            >
+              <X size={15} />
+            </button>
+          </div>
 
           {/* Time Capsule section */}
           <section className="card p-3.5">
@@ -749,17 +819,15 @@ export default function JournalEditor() {
             </button>
           </div>
 
-          <div className="relative hidden justify-center pt-2 lg:flex">
+          <div className="relative flex justify-center pt-2">
             <SprigLeft className="h-28 w-16 text-[rgb(var(--olive))] opacity-40" />
           </div>
 
-          <div className="hidden lg:block">
-            <TapedNote rotate="-2deg">
-              Same girl,
-              <br />
-              new chapter.
-            </TapedNote>
-          </div>
+          <TapedNote rotate="-2deg">
+            Same girl,
+            <br />
+            new chapter.
+          </TapedNote>
         </div>
       </div>
     </div>
