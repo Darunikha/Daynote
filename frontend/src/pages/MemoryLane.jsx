@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Sparkles, Calendar, ArrowLeft, RefreshCw, BookOpen } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Sparkles, Calendar, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import journalService from '../services/journalService';
 import JournalCard from '../components/JournalCard';
+import EmptyState from '../components/EmptyState';
 import { SkeletonGrid } from '../components/Loading';
 import { getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
@@ -105,18 +106,13 @@ export default function MemoryLane() {
           </div>
         </div>
       ) : (
-        <div className="card p-12 text-center space-y-4 max-w-lg mx-auto">
-          <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto shadow-inner">
-            <Sparkles size={28} />
-          </div>
-          <h2 className="font-serif text-xl">No memories found for this date</h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400 leading-relaxed">
-            You haven't written any entries on <strong className="font-medium">{displayDateStr}</strong> in previous years yet.
-          </p>
-          <Link to="/journal/new" className="btn btn-primary inline-flex items-center gap-2">
-            <BookOpen size={16} /> Write today's story
-          </Link>
-        </div>
+        <EmptyState
+          icon={Sparkles}
+          title="No memories found for this date."
+          description={`You haven't written any entries on ${displayDateStr} in previous years yet.`}
+          actionLabel="Write today's story"
+          actionTo="/journal/new"
+        />
       )}
     </div>
   );
