@@ -189,45 +189,51 @@ export default function MoodTracker() {
               <Sparkles size={15} className="text-[rgb(var(--accent))]" aria-hidden="true" />
               How did you feel {selectedDateLabel}?
             </h2>
-            <p className="muted mb-4 text-sm">
-              {selectedCheckins.length
-                ? "Feeling more than one thing? Tap another sticker to add it — you're not limited to one."
-                : selectedIsToday
-                  ? 'Pick whatever sticker fits right now, no need to overthink it.'
-                  : 'Missed this one? Pick a sticker and it will be saved for that day.'}
-            </p>
+            {loading ? (
+              <SkeletonLines lines={3} />
+            ) : (
+              <>
+                <p className="muted mb-4 text-sm">
+                  {selectedCheckins.length
+                    ? "Feeling more than one thing? Tap another sticker to add it — you're not limited to one."
+                    : selectedIsToday
+                      ? 'Pick whatever sticker fits right now, no need to overthink it.'
+                      : 'Missed this one? Pick a sticker and it will be saved for that day.'}
+                </p>
 
-            {selectedCheckins.length > 0 && (
-              <ul className="mb-4 flex flex-wrap gap-2">
-                {selectedCheckins.map((checkin) => {
-                  const meta = getMood(checkin.mood);
-                  return (
-                    <li
-                      key={checkin._id}
-                      className="flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2 text-xs"
-                      style={{ backgroundColor: meta.soft, color: 'rgb(var(--heading))' }}
-                    >
-                      <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
-                        <meta.Icon className="h-full w-full" />
-                      </span>
-                      <span>{meta.label}</span>
-                      <span className="muted">{formatTime(checkin.createdAt)}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeMood(checkin._id)}
-                        disabled={removingId === checkin._id}
-                        aria-label={`Remove ${meta.label} check-in at ${formatTime(checkin.createdAt)}`}
-                        className="muted rounded-full p-0.5 transition-colors hover:text-[rgb(var(--heading))] disabled:opacity-40"
-                      >
-                        <X size={11} />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                {selectedCheckins.length > 0 && (
+                  <ul className="mb-4 flex flex-wrap gap-2">
+                    {selectedCheckins.map((checkin) => {
+                      const meta = getMood(checkin.mood);
+                      return (
+                        <li
+                          key={checkin._id}
+                          className="flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2 text-xs"
+                          style={{ backgroundColor: meta.soft, color: 'rgb(var(--heading))' }}
+                        >
+                          <span className="flex h-5 w-5 items-center justify-center" aria-hidden="true">
+                            <meta.Icon className="h-full w-full" />
+                          </span>
+                          <span>{meta.label}</span>
+                          <span className="muted">{formatTime(checkin.createdAt)}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeMood(checkin._id)}
+                            disabled={removingId === checkin._id}
+                            aria-label={`Remove ${meta.label} check-in at ${formatTime(checkin.createdAt)}`}
+                            className="muted rounded-full p-0.5 transition-colors hover:text-[rgb(var(--heading))] disabled:opacity-40"
+                          >
+                            <X size={11} />
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+
+                <MoodSelector value="" onChange={recordMood} />
+              </>
             )}
-
-            <MoodSelector value="" onChange={recordMood} />
           </section>
           <section className="card relative overflow-hidden p-5 sm:p-6">
             <h2 className="mb-5 font-serif text-lg">Mood Insights</h2>
@@ -262,10 +268,10 @@ export default function MoodTracker() {
             )}
           </section>
 
-          {hasData && !loading && (
+          {(loading || hasData) && (
             <section className="card p-5 sm:p-6">
               <h2 className="mb-5 font-serif text-lg">How the month leaned</h2>
-              <MoodBars distribution={stats.distribution} />
+              {loading ? <SkeletonLines lines={5} /> : <MoodBars distribution={stats.distribution} />}
             </section>
           )}
 
