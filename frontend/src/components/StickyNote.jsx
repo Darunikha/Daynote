@@ -171,9 +171,32 @@ export default function StickyNote({ note, editable, active, containerRef, regis
 
   useEffect(() => () => (dragRef.current = null), []);
 
-  const rotateNote = () => {
-    const next = note.rotation + 15;
-    onChange({ rotation: next > 45 ? next - 90 : next });
+  /**
+   * Drag the handle around the note to rotate it to any angle within the
+   * ±45° range the schema allows — the angle between the note's own
+   * center and the pointer, measured from "up" (0°) going clockwise.
+   */
+  const startRotate = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const angleAt = (clientX, clientY) => (Math.atan2(clientX - cx, -(clientY - cy)) * 180) / Math.PI;
+    const startAngle = angleAt(e.clientX, e.clientY);
+    const startRotation = note.rotation;
+
+    const onMove = (ev) => {
+      const delta = angleAt(ev.clientX, ev.clientY) - startAngle;
+      onChange({ rotation: Math.round(Math.min(45, Math.max(-45, startRotation + delta))) });
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
   };
 
   const fontMeta = STICKY_NOTE_FONTS.find((f) => f.value === note.font) || STICKY_NOTE_FONTS[0];
@@ -272,9 +295,6 @@ export default function StickyNote({ note, editable, active, containerRef, regis
               </button>
             ))}
             <span className="mx-0.5 h-4 w-px shrink-0" style={{ backgroundColor: 'rgb(var(--border))' }} />
-            <button type="button" onClick={rotateNote} className="rounded-full p-1" aria-label="Rotate note">
-              <RotateCw size={11} />
-            </button>
             <button
               type="button"
               onClick={onDelete}
@@ -294,6 +314,19 @@ export default function StickyNote({ note, editable, active, containerRef, regis
           >
             <Move size={12} style={{ color: 'rgb(var(--text-muted))' }} />
           </span>
+
+          {/* Rotate handle — drag it around the note to turn it to any
+              angle within the ±45° range, instead of snapping in fixed
+              15° steps. */}
+          <button
+            type="button"
+            onPointerDown={startRotate}
+            aria-label="Rotate note — drag to any angle"
+            className="absolute -bottom-3 -right-3 flex h-6 w-6 items-center justify-center rounded-full border shadow-paper active:cursor-grabbing"
+            style={{ backgroundColor: 'rgb(var(--surface))', borderColor: 'rgb(var(--border))', cursor: 'grab', touchAction: 'none' }}
+          >
+            <RotateCw size={12} style={{ color: 'rgb(var(--text-muted))' }} />
+          </button>
         </>
       )}
     </div>
