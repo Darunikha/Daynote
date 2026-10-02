@@ -78,10 +78,15 @@ const patterns = {
 
   texture: (base, fiber, blotch) => ({
     backgroundColor: base,
+    // Two fiber layers at different angles/spacing read as real pressed
+    // paper pulp rather than a single flat hatch — the mismatch between
+    // the two is what gives it that mottled, torn-off-a-pad look.
     backgroundImage: `radial-gradient(ellipse 60% 40% at 18% 25%, ${blotch}, transparent 60%),
       radial-gradient(ellipse 55% 45% at 82% 70%, ${blotch}, transparent 60%),
       radial-gradient(ellipse 50% 35% at 50% 95%, ${blotch}, transparent 60%),
-      repeating-linear-gradient(115deg, ${fiber} 0, ${fiber} 1px, transparent 1px, transparent 4px)`,
+      radial-gradient(ellipse 40% 30% at 65% 15%, ${blotch}, transparent 65%),
+      repeating-linear-gradient(115deg, ${fiber} 0, ${fiber} 1px, transparent 1px, transparent 3.5px),
+      repeating-linear-gradient(25deg, ${fiber} 0, ${fiber} 1px, transparent 1px, transparent 6px)`,
   }),
 };
 
@@ -98,10 +103,12 @@ const DEFS = {
   'sage-green-check': ['check', '#F1F4EE', 'rgba(120,140,100,0.08)'],
   'cream-beige-check': ['check', '#FBF7EF', 'rgba(190,165,130,0.09)'],
 
-  'vintage-beige-paper': ['texture', '#F4EBDD', 'rgba(150,120,80,0.06)', 'rgba(180,150,110,0.10)'],
-  'old-book-paper': ['texture', '#EFE3CB', 'rgba(130,100,60,0.08)', 'rgba(160,120,70,0.12)'],
+  'vintage-beige-paper': ['texture', '#F4EBDD', 'rgba(150,120,80,0.09)', 'rgba(180,150,110,0.14)'],
+  'old-book-paper': ['texture', '#EFE3CB', 'rgba(130,100,60,0.12)', 'rgba(160,120,70,0.16)'],
   'vintage-handwritten-paper': ['ruled', '#F7EFDD', 'rgba(150,120,80,0.14)', 30],
-  'kraft-paper': ['texture', '#E9D9BE', 'rgba(110,80,40,0.08)', 'rgba(140,100,55,0.10)'],
+  // The deepest-toned, most visibly fibrous of the "paper" styles — a real
+  // torn-off-a-pad kraft look, not just a tan tint.
+  'kraft-paper': ['texture', '#E3D0AC', 'rgba(100,70,35,0.15)', 'rgba(130,90,45,0.18)'],
   'aged-notebook-paper': ['ruled', '#F1E7D2', 'rgba(140,110,70,0.16)', 28],
   'soft-parchment': ['texture', '#F6EEDF', 'rgba(160,140,100,0.05)', 'rgba(190,170,130,0.08)'],
 
@@ -132,7 +139,7 @@ const DEFS = {
   linen: ['texture', '#F3EFE7', 'rgba(140,125,105,0.07)', 'rgba(160,145,120,0.06)'],
   'warm-cream': ['plain', '#FBF6EC'],
   'soft-beige': ['plain', '#F5EEE2'],
-  'cocoa-paper': ['texture', '#E8DCCB', 'rgba(90,60,40,0.08)', 'rgba(110,75,50,0.10)'],
+  'cocoa-paper': ['texture', '#E8DCCB', 'rgba(90,60,40,0.12)', 'rgba(110,75,50,0.14)'],
   'muted-brown': ['plain', '#E9DECE'],
   'minimal-paper': ['plain', '#F8F6F2'],
 };

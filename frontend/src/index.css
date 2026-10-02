@@ -211,7 +211,7 @@
       radial-gradient(rgb(var(--text) / 0.4) 0.5px, transparent 0.6px);
     background-size: 3px 3px, 5px 5px;
     background-position: 0 0, 1.5px 2px;
-    opacity: 0.05;
+    opacity: 0.08;
     mix-blend-mode: multiply;
   }
   .dark .journal-grain {
