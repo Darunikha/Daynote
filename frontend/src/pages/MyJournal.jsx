@@ -188,7 +188,7 @@ export default function MyJournal() {
                 <option value="all">Any mood</option>
                 {MOODS.map((m) => (
                   <option key={m.value} value={m.value}>
-                    {m.emoji} {m.label}
+                    {m.label}
                   </option>
                 ))}
               </select>

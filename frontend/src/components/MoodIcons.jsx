@@ -1,8 +1,14 @@
 /**
- * Cute illustrated mood characters — soft rounded little faces rather than
- * emoji or line icons, matching the same "sticker" language as the
- * scrapbook decoration charms (a die-cut cream outline + a soft drop
- * shadow, so each one still feels hand-placed rather than printed flat).
+ * Illustrated mood stickers — one small hand-drawn object per mood, the way
+ * a scrapbook sticker would be, rather than a face. Each mood is its own
+ * thing (a sun, a sprout, a rain cloud…) so it reads at a glance even when
+ * displayed small, and they share the same die-cut language as the
+ * decoration charms: a thin cream edge plus a soft drop shadow, so each one
+ * still feels placed on the page rather than printed flat onto it.
+ *
+ * Keep the exported names stable — utils/moods.js maps each mood to its
+ * component. To swap in a real hand-drawn asset later, replace the SVG body
+ * of the matching component and leave the name and `className` prop alone.
  *
  * Purely decorative, so hidden from assistive technology — the visible
  * label text next to each one carries the meaning.
@@ -16,247 +22,212 @@ const base = {
 
 const ShadowDefs = ({ id }) => (
   <filter id={id} x="-60%" y="-60%" width="220%" height="220%">
-    <feDropShadow dx="0" dy="1.2" stdDeviation="1" floodColor="#5C4033" floodOpacity="0.32" />
+    <feDropShadow dx="0" dy="1.2" stdDeviation="1" floodColor="#5C4033" floodOpacity="0.3" />
   </filter>
 );
 
-/** The soft, slightly imperfect round "face" shape shared by most moods. */
-const BLOB = 'M22 5C32 5 40 12 40 21C40 30 32 37 22 37C12 37 4 30 4 21C4 12 12 5 22 5Z';
+const EDGE = { stroke: '#FFFBF7', strokeWidth: 1.4, style: { paintOrder: 'stroke' } };
 
+/** A small four-point sparkle, centred on (x, y). */
+const Sparkle = ({ x, y, size = 3, fill = '#F6D889' }) => (
+  <path
+    transform={`translate(${x} ${y}) scale(${size / 3})`}
+    d="M0 -3 L0.8 -0.8 L3 0 L0.8 0.8 L0 3 L-0.8 0.8 L-3 0 L-0.8 -0.8 Z"
+    fill={fill}
+  />
+);
+
+/** Happy — a warm little sun with soft rays and a sparkle. */
 export const HappyMoodIcon = ({ className = '' }) => (
   <svg {...base} viewBox="0 0 44 44" fill="none" className={className}>
     <defs>
-      <radialGradient id="gradHappy" cx="35%" cy="30%" r="75%">
-        <stop offset="0" stopColor="#F6DCA8" />
-        <stop offset="1" stopColor="#D9AD66" />
+      <radialGradient id="gradHappy" cx="40%" cy="35%" r="70%">
+        <stop offset="0" stopColor="#FCEBBE" />
+        <stop offset="1" stopColor="#EDBD6A" />
       </radialGradient>
       <ShadowDefs id="shadow-happy" />
     </defs>
     <g filter="url(#shadow-happy)">
-      <path d={BLOB} fill="url(#gradHappy)" stroke="#FFFBF7" strokeWidth="1.6" style={{ paintOrder: 'stroke' }} />
-      <g opacity=".85">
-        <circle cx="28" cy="2" r="2.3" fill="#F0AFC0" />
-        <circle cx="30.6" cy="4.4" r="2.3" fill="#F0AFC0" />
-        <circle cx="25.4" cy="4.4" r="2.3" fill="#F0AFC0" />
-        <circle cx="28" cy="6.6" r="2.3" fill="#F0AFC0" />
-        <circle cx="28" cy="4.4" r="1.6" fill="#F6D889" />
-      </g>
-      <ellipse cx="14" cy="24" rx="3" ry="2" fill="#E8967D" opacity=".4" />
-      <ellipse cx="30" cy="24" rx="3" ry="2" fill="#E8967D" opacity=".4" />
-      <path d="M13 19c1.2-1.6 3.6-1.6 4.8 0" stroke="#6B4B3E" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-      <path d="M26.2 19c1.2-1.6 3.6-1.6 4.8 0" stroke="#6B4B3E" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-      <path d="M15 26c3 3.4 11 3.4 14 0" stroke="#6B4B3E" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <path
+        d="M22 3v5M22 36v5M3 22h5M36 22h5M8.2 8.2l3.5 3.5M32.3 32.3l3.5 3.5M8.2 35.8l3.5-3.5M32.3 11.7l3.5-3.5"
+        stroke="#E9B865"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
+      <circle cx="22" cy="22" r="10.5" fill="url(#gradHappy)" {...EDGE} />
+      <Sparkle x={36} y={8} size={4} />
     </g>
   </svg>
 );
 
+/** Calm — a small sprout in a pot, the kind of quiet thing you'd tape in. */
 export const CalmMoodIcon = ({ className = '' }) => (
   <svg {...base} viewBox="0 0 44 44" fill="none" className={className}>
     <defs>
-      <radialGradient id="gradCalm" cx="35%" cy="30%" r="75%">
-        <stop offset="0" stopColor="#C3D0B6" />
+      <linearGradient id="gradCalm" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#B9CBA8" />
         <stop offset="1" stopColor="#8A9A7B" />
-      </radialGradient>
+      </linearGradient>
       <ShadowDefs id="shadow-calm" />
     </defs>
     <g filter="url(#shadow-calm)">
-      <path d={BLOB} fill="url(#gradCalm)" stroke="#FFFBF7" strokeWidth="1.6" style={{ paintOrder: 'stroke' }} />
-      <path d="M32 4c2.4 2.6 1.6 6-.6 8" stroke="#5E6E50" strokeWidth="1.3" strokeLinecap="round" fill="none" opacity=".8" />
-      <ellipse cx="33.4" cy="7.6" rx="2.6" ry="1.5" fill="#A9BC97" transform="rotate(35 33.4 7.6)" />
-      <path d="M13 20h5" stroke="#43503A" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M26 20h5" stroke="#43503A" strokeWidth="1.6" strokeLinecap="round" />
-      <path d="M17 26c2.5 2 7.5 2 10 0" stroke="#43503A" strokeWidth="1.7" strokeLinecap="round" fill="none" />
-      <path d="M3 20c-1.6.2-2.6 1-2.8 1.8" stroke="#8A9A7B" strokeWidth="1.1" strokeLinecap="round" opacity=".45" fill="none" />
-      <path d="M41 20c1.6.2 2.6 1 2.8 1.8" stroke="#8A9A7B" strokeWidth="1.1" strokeLinecap="round" opacity=".45" fill="none" />
+      <path d="M22 31V17" stroke="#7D8C6C" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M22 19C18 19 13.5 16.5 13.5 11.5C18 11.5 22 14.5 22 19Z" fill="url(#gradCalm)" {...EDGE} />
+      <path d="M22 17C23 12.5 26.5 9.5 31 9.5C30.5 14 27 17 22 17Z" fill="url(#gradCalm)" {...EDGE} />
+      <path d="M13 31H31L29 39H15Z" fill="#E2B49A" {...EDGE} />
+      <path d="M12 30.5H32V32.5H12Z" fill="#D39B80" {...EDGE} />
     </g>
   </svg>
 );
 
+/** Loved — a soft pink heart with a little highlight and sparkles. */
 export const LovedMoodIcon = ({ className = '' }) => (
   <svg {...base} viewBox="0 0 44 44" fill="none" className={className}>
     <defs>
-      <radialGradient id="gradLoved" cx="35%" cy="30%" r="75%">
-        <stop offset="0" stopColor="#F3CDD1" />
-        <stop offset="1" stopColor="#D89AA0" />
+      <radialGradient id="gradLoved" cx="38%" cy="32%" r="75%">
+        <stop offset="0" stopColor="#F8D3D8" />
+        <stop offset="1" stopColor="#E09AA6" />
       </radialGradient>
       <ShadowDefs id="shadow-loved" />
     </defs>
     <g filter="url(#shadow-loved)">
       <path
-        d="M22 36C10 28 4 21 4 14.5 4 8.6 8.8 4 14.4 4c3.4 0 6.4 1.8 7.6 4.6C23.2 5.8 26.2 4 29.6 4 35.2 4 40 8.6 40 14.5 40 21 34 28 22 36Z"
+        d="M22 36C10 28 6 22 6 16C6 10.5 10 7 15 7C18.5 7 21 9 22 11.5C23 9 25.5 7 29 7C34 7 38 10.5 38 16C38 22 34 28 22 36Z"
         fill="url(#gradLoved)"
-        stroke="#FFFBF7"
-        strokeWidth="1.6"
-        style={{ paintOrder: 'stroke' }}
+        {...EDGE}
       />
-      <ellipse cx="13" cy="18" rx="2.6" ry="1.8" fill="#C96B7E" opacity=".4" />
-      <ellipse cx="31" cy="18" rx="2.6" ry="1.8" fill="#C96B7E" opacity=".4" />
-      <path d="M11 14c1.2-1.5 3.4-1.5 4.6 0" stroke="#6B3E48" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-      <path d="M27.4 14c1.2-1.5 3.4-1.5 4.6 0" stroke="#6B3E48" strokeWidth="1.6" strokeLinecap="round" fill="none" />
-      <path d="M14 20c3 2.6 12 2.6 15 0" stroke="#6B3E48" strokeWidth="1.7" strokeLinecap="round" fill="none" />
-      <path
-        d="M35.6 1.6c1-1 2.6-1 2.6.8 0 1.2-1.3 1.9-2.6 2.8-1.3-.9-2.6-1.6-2.6-2.8 0-1.8 1.6-1.8 2.6-.8Z"
-        fill="#EFAEB6"
-      />
+      <path d="M11.5 14.5C12 12.5 13.5 11.5 15 11.5" stroke="#FFFBF7" strokeWidth="1.4" strokeLinecap="round" fill="none" opacity=".8" />
+      <Sparkle x={37} y={6} size={3.5} fill="#F3C9D0" />
+      <Sparkle x={6} y={40} size={2.5} fill="#F3C9D0" />
     </g>
   </svg>
 );
 
+/** Excited — a peachy star with a couple of bright sparkles around it. */
 export const ExcitedMoodIcon = ({ className = '' }) => (
   <svg {...base} viewBox="0 0 44 44" fill="none" className={className}>
     <defs>
-      <radialGradient id="gradExcited" cx="35%" cy="30%" r="75%">
-        <stop offset="0" stopColor="#F2C3B7" />
-        <stop offset="1" stopColor="#D48D80" />
+      <radialGradient id="gradExcited" cx="40%" cy="35%" r="75%">
+        <stop offset="0" stopColor="#F9CFB0" />
+        <stop offset="1" stopColor="#E8A07E" />
       </radialGradient>
       <ShadowDefs id="shadow-excited" />
     </defs>
     <g filter="url(#shadow-excited)">
-      <path d={BLOB} fill="url(#gradExcited)" stroke="#FFFBF7" strokeWidth="1.6" style={{ paintOrder: 'stroke' }} />
-      <circle cx="15" cy="19" r="3.2" fill="#5C3A32" />
-      <circle cx="29" cy="19" r="3.2" fill="#5C3A32" />
-      <circle cx="13.8" cy="17.6" r="1" fill="#fff" />
-      <circle cx="27.8" cy="17.6" r="1" fill="#fff" />
-      <ellipse cx="22" cy="27.5" rx="4" ry="3.2" fill="#7A4638" />
-      <path d="M6 7l1 2.4L9.4 10.4 7 11.4 6 13.8 5 11.4 2.6 10.4 5 9.4Z" fill="#F3D08B" />
-      <path d="M38 26l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z" fill="#F3D08B" />
+      <path
+        d="M22 7L25.8 16.7L36.3 17.4L28.2 24L30.8 34.1L22 28.5L13.2 34.1L15.8 24L7.7 17.4L18.2 16.7Z"
+        fill="url(#gradExcited)"
+        {...EDGE}
+        strokeLinejoin="round"
+      />
+      <Sparkle x={38} y={8} size={4} />
+      <Sparkle x={6} y={9} size={3} />
+      <Sparkle x={38} y={38} size={2.5} />
     </g>
   </svg>
 );
 
+/** Neutral — one plain, drifting cloud. Nothing dramatic, just there. */
 export const NeutralMoodIcon = ({ className = '' }) => (
   <svg {...base} viewBox="0 0 44 44" fill="none" className={className}>
     <defs>
-      <radialGradient id="gradNeutral" cx="35%" cy="30%" r="75%">
-        <stop offset="0" stopColor="#D8CFC7" />
-        <stop offset="1" stopColor="#AFA096" />
-      </radialGradient>
+      <linearGradient id="gradNeutral" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#E4E9EF" />
+        <stop offset="1" stopColor="#BFCAD6" />
+      </linearGradient>
       <ShadowDefs id="shadow-neutral" />
     </defs>
     <g filter="url(#shadow-neutral)">
-      <path d={BLOB} fill="url(#gradNeutral)" stroke="#FFFBF7" strokeWidth="1.6" style={{ paintOrder: 'stroke' }} />
-      <circle cx="15" cy="20" r="1.8" fill="#5C4F47" />
-      <circle cx="29" cy="20" r="1.8" fill="#5C4F47" />
-      <path d="M15 27h14" stroke="#5C4F47" strokeWidth="1.7" strokeLinecap="round" />
+      <path
+        d="M11 31C7.5 31 6 28 6.8 25.5C7.6 23 10.5 22.5 11.8 23.8C12.5 19.5 16 17 20 17.8C21.2 14.5 25.5 13.5 28.2 15.8C31 14.8 34 16.5 34.5 19.5C37.5 19.8 38.5 23.5 36.5 25.5C35.8 26.3 34.8 26.6 33.8 26.6V31Z"
+        fill="url(#gradNeutral)"
+        {...EDGE}
+      />
+      <path d="M14 27H30" stroke="#A9B6C4" strokeWidth="1.2" strokeLinecap="round" opacity=".7" />
     </g>
   </svg>
 );
 
+/** Sad — a little rain cloud with three soft drops falling from it. */
 export const SadMoodIcon = ({ className = '' }) => (
   <svg {...base} viewBox="0 0 44 44" fill="none" className={className}>
     <defs>
-      <radialGradient id="gradSad" cx="35%" cy="30%" r="75%">
-        <stop offset="0" stopColor="#C3D2E1" />
-        <stop offset="1" stopColor="#8CA0B8" />
-      </radialGradient>
+      <linearGradient id="gradSad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#C4D2E6" />
+        <stop offset="1" stopColor="#8FA8C8" />
+      </linearGradient>
       <ShadowDefs id="shadow-sad" />
     </defs>
     <g filter="url(#shadow-sad)">
       <path
-        d="M22 8C31 8 38 14 38 21C38 30 31 36 22 36C13 36 6 30 6 21C6 14 13 8 22 8Z"
+        d="M11 25C7.5 25 6 22 6.8 19.5C7.6 17 10.5 16.5 11.8 17.8C12.5 13.5 16 11 20 11.8C21.2 8.5 25.5 7.5 28.2 9.8C31 8.8 34 10.5 34.5 13.5C37.5 13.8 38.5 17.5 36.5 19.5C35.8 20.3 34.8 20.6 33.8 20.6H11Z"
         fill="url(#gradSad)"
-        stroke="#FFFBF7"
-        strokeWidth="1.6"
-        style={{ paintOrder: 'stroke' }}
+        {...EDGE}
       />
-      <g opacity=".75">
-        <ellipse cx="14" cy="6.5" rx="3.2" ry="2.4" fill="#B7C4D4" />
-        <ellipse cx="17.6" cy="5.4" rx="3.8" ry="2.8" fill="#B7C4D4" />
-        <ellipse cx="21.2" cy="6.8" rx="3" ry="2.2" fill="#B7C4D4" />
-        <rect x="12" y="6" width="11" height="3" rx="1.5" fill="#B7C4D4" />
-      </g>
-      <path d="M13 18c1.2 1 3.2 1 4.6 0" stroke="#3E4E5E" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-      <path d="M25.4 18c1.4-1 3.4-1 4.6 0" stroke="#3E4E5E" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-      <circle cx="15" cy="21" r="1.6" fill="#3E4E5E" />
-      <circle cx="28" cy="21" r="1.6" fill="#3E4E5E" />
-      <path d="M15.5 25c0 1.4-1 2-2 2s-2-.6-2-2c0-1.2 2-3 2-3s2 1.8 2 3Z" fill="#7FA0C0" />
-      <path d="M16 30c2.5-2 9.5-2 12 0" stroke="#3E4E5E" strokeWidth="1.7" strokeLinecap="round" fill="none" />
+      <path d="M13 30.5Q14.5 33.5 13 35.5Q11.5 33.5 13 30.5Z" fill="#8FA8C8" />
+      <path d="M22 31.5Q23.5 34.5 22 36.5Q20.5 34.5 22 31.5Z" fill="#8FA8C8" />
+      <path d="M31 30.5Q32.5 33.5 31 35.5Q29.5 33.5 31 30.5Z" fill="#8FA8C8" />
     </g>
   </svg>
 );
 
+/** Angry — a small flame with a bright inner flicker. Heat, not a face. */
 export const AngryMoodIcon = ({ className = '' }) => (
   <svg {...base} viewBox="0 0 44 44" fill="none" className={className}>
     <defs>
-      <radialGradient id="gradAngry" cx="35%" cy="30%" r="75%">
-        <stop offset="0" stopColor="#DDA89B" />
-        <stop offset="1" stopColor="#A96B5F" />
-      </radialGradient>
+      <linearGradient id="gradAngry" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#F0A58A" />
+        <stop offset="1" stopColor="#C4664F" />
+      </linearGradient>
       <ShadowDefs id="shadow-angry" />
     </defs>
     <g filter="url(#shadow-angry)">
-      <path d={BLOB} fill="url(#gradAngry)" stroke="#FFFBF7" strokeWidth="1.6" style={{ paintOrder: 'stroke' }} />
-      <g opacity=".6" fill="#DDA89B">
-        <circle cx="9" cy="6" r="1.6" />
-        <circle cx="35" cy="6" r="1.6" />
-        <circle cx="7" cy="2.6" r="1.1" />
-        <circle cx="37" cy="2.6" r="1.1" />
-      </g>
-      <path d="M11 17l6 2" stroke="#5C332B" strokeWidth="1.7" strokeLinecap="round" />
-      <path d="M33 17l-6 2" stroke="#5C332B" strokeWidth="1.7" strokeLinecap="round" />
-      <circle cx="15" cy="22" r="1.8" fill="#5C332B" />
-      <circle cx="29" cy="22" r="1.8" fill="#5C332B" />
-      <path d="M16 29c2-1.6 10-1.6 12 0" stroke="#5C332B" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      <path
+        d="M22 5C26 12 34 16 33 27C32.3 33.5 27.5 38 22 38C16.5 38 11 34 11 27C11 21 14.5 18.5 16.5 13C18.5 17 20 19 22 19C22 14 20 10 22 5Z"
+        fill="url(#gradAngry)"
+        {...EDGE}
+      />
+      <path d="M22 30C20.5 27.5 18 26.5 18 23.5C20 24.5 21 25 22 26C23 25 24 24 25 22C25.5 25 24 27.5 22 30Z" fill="#F8D89A" />
     </g>
   </svg>
 );
 
+/** Anxious — a curled, trembling leaf with little shiver lines beside it. */
 export const AnxiousMoodIcon = ({ className = '' }) => (
   <svg {...base} viewBox="0 0 44 44" fill="none" className={className}>
     <defs>
-      <radialGradient id="gradAnxious" cx="35%" cy="30%" r="75%">
-        <stop offset="0" stopColor="#D3C4DC" />
-        <stop offset="1" stopColor="#9986A8" />
-      </radialGradient>
+      <linearGradient id="gradAnxious" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#D8CCE6" />
+        <stop offset="1" stopColor="#B0A0C4" />
+      </linearGradient>
       <ShadowDefs id="shadow-anxious" />
     </defs>
     <g filter="url(#shadow-anxious)">
-      <path d={BLOB} fill="url(#gradAnxious)" stroke="#FFFBF7" strokeWidth="1.6" style={{ paintOrder: 'stroke' }} />
       <path
-        d="M35 6c1.8 0 3.2 1.3 3.2 3 0 1.7-1.7 2.6-3.2 2"
-        stroke="#6B5A78"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        fill="none"
-        opacity=".55"
+        d="M14 35C9.5 25 13 13.5 27 9.5C29.5 20 25.5 31 14 35Z"
+        fill="url(#gradAnxious)"
+        {...EDGE}
       />
-      <circle cx="15" cy="19" r="3" fill="none" stroke="#4A3B57" strokeWidth="1.6" />
-      <circle cx="29" cy="19" r="3" fill="none" stroke="#4A3B57" strokeWidth="1.6" />
-      <circle cx="15" cy="19" r="1.1" fill="#4A3B57" />
-      <circle cx="29" cy="19" r="1.1" fill="#4A3B57" />
-      <path d="M11 14l4 1.4" stroke="#4A3B57" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M33 14l-4 1.4" stroke="#4A3B57" strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M15 28c2-2 3-2 5 0s3 2 5 0 3-2 5 0" stroke="#4A3B57" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+      <path d="M14 35C18.5 27 22 19 27 9.5" stroke="#9887B0" strokeWidth="1.1" strokeLinecap="round" fill="none" />
+      <path d="M33 15q1.5-1.6 3 0t3 0M34 22q1.5-1.6 3 0t3 0M33 29q1.5-1.6 3 0t3 0" stroke="#A796C2" strokeWidth="1.4" strokeLinecap="round" fill="none" />
     </g>
   </svg>
 );
 
+/** Tired — a sleepy crescent moon with a small "z" drifting off it. */
 export const TiredMoodIcon = ({ className = '' }) => (
   <svg {...base} viewBox="0 0 44 44" fill="none" className={className}>
     <defs>
-      <radialGradient id="gradTired" cx="35%" cy="30%" r="75%">
-        <stop offset="0" stopColor="#C9BDD0" />
-        <stop offset="1" stopColor="#8D7E95" />
+      <radialGradient id="gradTired" cx="30%" cy="30%" r="80%">
+        <stop offset="0" stopColor="#D7CEEA" />
+        <stop offset="1" stopColor="#A196BA" />
       </radialGradient>
       <ShadowDefs id="shadow-tired" />
     </defs>
     <g filter="url(#shadow-tired)">
-      <path
-        d="M20 8C29 8 36 14 36 21C36 30 29 36 20 36C11 36 4 30 4 21C4 14 11 8 20 8Z"
-        fill="url(#gradTired)"
-        stroke="#FFFBF7"
-        strokeWidth="1.6"
-        style={{ paintOrder: 'stroke' }}
-      />
-      <path d="M9 20c1.6 1.6 4.6 1.6 6 0" stroke="#463B52" strokeWidth="1.7" strokeLinecap="round" fill="none" />
-      <path d="M23 20c1.6 1.6 4.6 1.6 6 0" stroke="#463B52" strokeWidth="1.7" strokeLinecap="round" fill="none" />
-      <ellipse cx="18" cy="27" rx="2.6" ry="2" fill="#463B52" />
-      <text x="28" y="10" fontSize="7" fontFamily="Georgia, serif" fill="#8D7E95" opacity=".85">
-        z
-      </text>
-      <text x="33" y="6" fontSize="5" fontFamily="Georgia, serif" fill="#8D7E95" opacity=".7">
-        z
-      </text>
+      <path d="M26 6A15 15 0 1 0 38 27A12 12 0 0 1 26 6Z" fill="url(#gradTired)" {...EDGE} />
+      <path d="M31 8h4l-4 4h4" stroke="#8E82A8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+      <path d="M37 14h3l-3 3h3" stroke="#8E82A8" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
     </g>
   </svg>
 );
