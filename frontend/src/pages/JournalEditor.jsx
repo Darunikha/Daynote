@@ -452,7 +452,7 @@ export default function JournalEditor() {
         <button
           type="button"
           onClick={() => setDetailsOpen(true)}
-          className="btn btn-ghost ml-auto !py-2"
+          className="btn btn-ghost ml-auto !py-2 lg:hidden"
         >
           <SlidersHorizontal size={14} aria-hidden="true" />
           Details
@@ -469,7 +469,8 @@ export default function JournalEditor() {
       {/* The writing area is the only thing on the page by default — no grid
           split, no permanent rail — styled as an actual sheet of paper (see
           JournalPageFrame) rather than a plain panel. */}
-      <div>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+        <div>
         <JournalPageFrame
           className="flex flex-col p-6 sm:p-10 lg:min-h-[82vh]"
           style={getPaperBackground(form.paperStyle)}
@@ -551,21 +552,20 @@ export default function JournalEditor() {
             onChange={(stickyNotes) => update({ stickyNotes })}
           />
         </JournalPageFrame>
-      </div>
+        </div>
 
-      {/* Details drawer — Time Capsule, Password Lock, Tags, Photo. Slides
-          in over the page instead of permanently sharing its width, so
-          closing it (or never opening it) gives the page the full screen. */}
+      {/* Details panel — Time Capsule, Password Lock, Tags, Photo. Always a
+          visible column on large screens; a slide-over on smaller ones. */}
       {detailsOpen && (
         <button
           type="button"
           aria-label="Close details"
           onClick={() => setDetailsOpen(false)}
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px] lg:hidden"
         />
       )}
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-[320px] max-w-[88vw] overflow-y-auto border-l shadow-paper-lg transition-transform duration-300 ${
+        className={`fixed inset-y-0 right-0 z-50 w-[320px] max-w-[88vw] overflow-y-auto border-l shadow-paper-lg transition-transform duration-300 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:overflow-visible lg:border-0 lg:!bg-transparent lg:shadow-none lg:translate-x-0 ${
           detailsOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
         style={{ backgroundColor: 'rgb(var(--bg))', borderColor: 'rgb(var(--border))' }}
@@ -579,7 +579,7 @@ export default function JournalEditor() {
               type="button"
               onClick={() => setDetailsOpen(false)}
               aria-label="Close details"
-              className="muted rounded-full border p-1.5 transition-colors hover:text-[rgb(var(--heading))]"
+              className="muted rounded-full border p-1.5 transition-colors hover:text-[rgb(var(--heading))] lg:hidden"
             >
               <X size={15} />
             </button>
@@ -829,6 +829,7 @@ export default function JournalEditor() {
             new chapter.
           </TapedNote>
         </div>
+      </div>
       </div>
     </div>
   );
