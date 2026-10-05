@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { RotateCw, X } from 'lucide-react';
+import { Maximize2, RotateCw, X } from 'lucide-react';
 import { getDecoration } from '../utils/decorations';
 
 /**
@@ -21,8 +21,11 @@ export default function MovableCharm({ placement, editable, active, containerRef
 
   const decoration = getDecoration(placement.type);
   if (!decoration.Charm) return null;
-  const { Charm, width, height } = decoration;
+  const { Charm } = decoration;
   const rotation = placement.rotation ?? decoration.rotate ?? 0;
+  const scale = placement.scale ?? 1;
+  const width = decoration.width * scale;
+  const height = decoration.height * scale;
 
   const startDrag = (e) => {
     if (!editable) return;
@@ -85,6 +88,35 @@ export default function MovableCharm({ placement, editable, active, containerRef
     window.addEventListener('pointerup', onUp);
   };
 
+  /**
+   * Drag the corner grip to scale the charm up or down. The new size tracks
+   * how far the pointer is from the charm's center compared to where the
+   * drag started, so it grows as you pull out and shrinks as you push in.
+   */
+  const startResize = (e) => {
+    if (!editable) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const startDist = Math.hypot(e.clientX - cx, e.clientY - cy) || 1;
+    const startScale = scale;
+
+    const onMove = (ev) => {
+      const dist = Math.hypot(ev.clientX - cx, ev.clientY - cy);
+      const next = startScale * (dist / startDist);
+      onChange({ scale: Math.round(Math.min(2.5, Math.max(0.5, next)) * 100) / 100 });
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
   return (
     <div
       ref={wrapperRef}
@@ -128,6 +160,15 @@ export default function MovableCharm({ placement, editable, active, containerRef
               turn it to any angle, like a design tool's rotate handle,
               instead of snapping in fixed steps. Sits at the opposite
               corner from the delete pill so the two never overlap. */}
+          <button
+            type="button"
+            onPointerDown={startResize}
+            aria-label={`Resize ${decoration.label} — drag to make it bigger or smaller`}
+            className="absolute -bottom-2.5 -left-2.5 flex h-6 w-6 items-center justify-center rounded-full border shadow-paper active:cursor-grabbing"
+            style={{ backgroundColor: 'rgb(var(--surface))', borderColor: 'rgb(var(--border))', cursor: 'nwse-resize', touchAction: 'none' }}
+          >
+            <Maximize2 size={11} style={{ color: 'rgb(var(--text-muted))' }} />
+          </button>
           <button
             type="button"
             onPointerDown={startRotate}

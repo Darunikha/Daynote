@@ -126,6 +126,7 @@ const decorationPlacementSchema = new mongoose.Schema(
     x: { type: Number, default: 50, min: 0, max: 100 },
     y: { type: Number, default: 50, min: 0, max: 100 },
     rotation: { type: Number, default: 0, min: -180, max: 180 },
+    scale: { type: Number, default: 1, min: 0.5, max: 2.5 },
   },
   { _id: false }
 );
@@ -139,6 +140,7 @@ const stickyNoteSchema = new mongoose.Schema(
     x: { type: Number, default: 50, min: 0, max: 100 },
     y: { type: Number, default: 20, min: 0, max: 100 },
     rotation: { type: Number, default: 0, min: -45, max: 45 },
+    scale: { type: Number, default: 1, min: 0.5, max: 2.5 },
     font: { type: String, enum: STICKY_NOTE_FONTS, default: 'handwritten' },
     fontSize: { type: String, enum: STICKY_NOTE_SIZES, default: 'md' },
     align: { type: String, enum: STICKY_NOTE_ALIGN, default: 'left' },

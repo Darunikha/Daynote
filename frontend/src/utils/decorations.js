@@ -259,5 +259,5 @@ const nextPlacementId = () => {
 export const createDecorationPlacement = (type, index = 0) => {
   const meta = getDecoration(type);
   const spot = defaultDecorationSpot(type, index);
-  return { id: nextPlacementId(), type, x: spot.x, y: spot.y, rotation: meta.rotate ?? 0 };
+  return { id: nextPlacementId(), type, x: spot.x, y: spot.y, rotation: meta.rotate ?? 0, scale: 1 };
 };

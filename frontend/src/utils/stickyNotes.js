@@ -214,6 +214,7 @@ export const createStickyNote = (design = 'scallop-floral', index = 0) => {
     x: spot.x,
     y: spot.y,
     rotation: Math.round((Math.random() - 0.5) * 12),
+    scale: 1,
     font: 'handwritten',
     fontSize: 'md',
     align: 'left',

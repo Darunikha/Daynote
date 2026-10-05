@@ -262,6 +262,7 @@ const pickBody = (body) => {
         x: Number.isFinite(p.x) ? Math.min(100, Math.max(0, p.x)) : 50,
         y: Number.isFinite(p.y) ? Math.min(100, Math.max(0, p.y)) : 50,
         rotation: Number.isFinite(p.rotation) ? Math.min(180, Math.max(-180, p.rotation)) : 0,
+        scale: Number.isFinite(p.scale) ? Math.min(2.5, Math.max(0.5, p.scale)) : 1,
       }));
     out.decorations = out.decorationPlacements.map((p) => p.type);
   } else if (body.decorations !== undefined) {
@@ -294,6 +295,7 @@ const pickBody = (body) => {
         x: Number.isFinite(n.x) ? Math.min(100, Math.max(0, n.x)) : 50,
         y: Number.isFinite(n.y) ? Math.min(100, Math.max(0, n.y)) : 20,
         rotation: Number.isFinite(n.rotation) ? Math.min(45, Math.max(-45, n.rotation)) : 0,
+        scale: Number.isFinite(n.scale) ? Math.min(2.5, Math.max(0.5, n.scale)) : 1,
         font: n.font,
         fontSize: n.fontSize,
         align: n.align,

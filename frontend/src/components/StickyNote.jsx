@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Move, RotateCw, X, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Maximize2, Move, RotateCw, X, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { TinyFlowerCharm, WashiTapeCharm, TinyBowCharm, StarCharm } from './Charms';
 import {
   STICKY_NOTE_FONTS,
@@ -199,6 +199,34 @@ export default function StickyNote({ note, editable, active, containerRef, regis
     window.addEventListener('pointerup', onUp);
   };
 
+  /**
+   * Drag the corner grip to scale the whole note up or down. The size tracks
+   * the pointer's distance from the note's center relative to where the drag
+   * started, so text, decorations and toolbar all scale together.
+   */
+  const startResize = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const startDist = Math.hypot(e.clientX - cx, e.clientY - cy) || 1;
+    const startScale = note.scale ?? 1;
+
+    const onMove = (ev) => {
+      const dist = Math.hypot(ev.clientX - cx, ev.clientY - cy);
+      const next = startScale * (dist / startDist);
+      onChange({ scale: Math.round(Math.min(2.5, Math.max(0.5, next)) * 100) / 100 });
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
   const fontMeta = STICKY_NOTE_FONTS.find((f) => f.value === note.font) || STICKY_NOTE_FONTS[0];
   const sizeMeta = STICKY_NOTE_SIZES.find((s) => s.value === note.fontSize) || STICKY_NOTE_SIZES[1];
   const alignClass = note.align === 'center' ? 'text-center' : note.align === 'right' ? 'text-right' : 'text-left';
@@ -212,7 +240,7 @@ export default function StickyNote({ note, editable, active, containerRef, regis
         top: `${note.y}%`,
         width: WIDTH,
         height: HEIGHT,
-        transform: `translate(-50%, -50%) rotate(${note.rotation}deg)`,
+        transform: `translate(-50%, -50%) rotate(${note.rotation}deg) scale(${note.scale ?? 1})`,
         zIndex: active ? 30 : 10,
         pointerEvents: 'auto',
       }}
@@ -314,6 +342,16 @@ export default function StickyNote({ note, editable, active, containerRef, regis
           >
             <Move size={12} style={{ color: 'rgb(var(--text-muted))' }} />
           </span>
+
+          <button
+            type="button"
+            onPointerDown={startResize}
+            aria-label="Resize note — drag to make it bigger or smaller"
+            className="absolute -bottom-3 -left-3 flex h-6 w-6 items-center justify-center rounded-full border shadow-paper"
+            style={{ backgroundColor: 'rgb(var(--surface))', borderColor: 'rgb(var(--border))', cursor: 'nwse-resize', touchAction: 'none' }}
+          >
+            <Maximize2 size={12} style={{ color: 'rgb(var(--text-muted))' }} />
+          </button>
 
           {/* Rotate handle — drag it around the note to turn it to any
               angle within the ±45° range, instead of snapping in fixed
