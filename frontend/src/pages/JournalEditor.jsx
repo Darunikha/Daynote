@@ -6,12 +6,14 @@ import DecorationPicker from '../components/DecorationPicker';
 import PopoverPanel from '../components/PopoverPanel';
 import DecorationLayer from '../components/DecorationLayer';
 import JournalPageFrame from '../components/JournalPageFrame';
+import PageBorderPicker from '../components/PageBorderPicker';
 import JournalPrompt from '../components/JournalPrompt';
 import EntryCustomizePanel from '../components/EntryCustomizePanel';
 import PhotoFrame from '../components/PhotoFrame';
 import StickyNotesLayer from '../components/StickyNotesLayer';
 import StickyNotePicker from '../components/StickyNotePicker';
 import { getPaperBackground, getPaperStyleMeta } from '../utils/paperStyles';
+import { getPageBorder, dailyPageBorder } from '../utils/pageBorders';
 import { getDecoration, createDecorationPlacement } from '../utils/decorations';
 import { getFont, getLayout, PHOTO_STYLES } from '../utils/entryStyle';
 import { createStickyNote, getNoteBackgroundStyle } from '../utils/stickyNotes';
@@ -32,6 +34,7 @@ const EMPTY = {
   content: '',
   paperStyle: 'plain',
   decorationPlacements: [],
+  pageBorder: 'none',
   font: 'clean',
   layout: 'classic',
   photoStyle: 'plain',
@@ -56,10 +59,15 @@ export default function JournalEditor() {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // A new entry can be pre-filled from a date clicked in the calendar.
+  // A new entry can be pre-filled from a date clicked in the calendar. Its
+  // page border is auto-assigned from today's date — a different, but
+  // stable, border per day, never random — and stays fixed once this draft
+  // exists; an edit overwrites it below with whatever the entry was saved
+  // with, so this only ever applies to a brand-new entry.
   const [form, setForm] = useState(() => ({
     ...EMPTY,
     date: params.get('date') || EMPTY.date,
+    pageBorder: dailyPageBorder(),
   }));
   const [lockPassword, setLockPassword] = useState('');
   const [isLocked, setIsLocked] = useState(false);
@@ -123,6 +131,7 @@ export default function JournalEditor() {
           content: e.content,
           paperStyle: e.paperStyle || 'plain',
           decorationPlacements: e.decorationPlacements || [],
+          pageBorder: e.pageBorder || 'none',
           font: e.font || 'clean',
           layout: e.layout || 'classic',
           photoStyle: e.photoStyle || 'plain',
@@ -379,6 +388,27 @@ export default function JournalEditor() {
         </PopoverPanel>
 
         <PopoverPanel
+          label="Page Border"
+          valueLabel={getPageBorder(form.pageBorder).label}
+          preview={
+            <span
+              className="relative h-6 w-6 shrink-0 overflow-hidden rounded-md border"
+              style={{ borderColor: 'rgb(var(--border))', backgroundColor: 'rgb(var(--surface-alt))' }}
+              aria-hidden="true"
+            >
+              {form.pageBorder !== 'none' && (
+                <span
+                  className="absolute rounded-full"
+                  style={{ inset: 3, backgroundColor: getPageBorder(form.pageBorder).color }}
+                />
+              )}
+            </span>
+          }
+        >
+          <PageBorderPicker value={form.pageBorder} onChange={(pageBorder) => update({ pageBorder })} />
+        </PopoverPanel>
+
+        <PopoverPanel
           label="Decoration"
           valueLabel={decorationLabel}
           preview={
@@ -474,6 +504,7 @@ export default function JournalEditor() {
         <JournalPageFrame
           className="flex flex-col p-6 sm:p-10 lg:min-h-[82vh]"
           style={getPaperBackground(form.paperStyle)}
+          border={form.pageBorder}
         >
           <DecorationLayer
             placements={form.decorationPlacements}

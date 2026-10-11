@@ -9,6 +9,7 @@ const {
   PHOTO_STYLES,
   HEADING_STYLES,
   DIVIDERS,
+  PAGE_BORDERS,
   STICKY_NOTE_DESIGNS,
   STICKY_NOTE_FONTS,
   STICKY_NOTE_SIZES,
@@ -283,6 +284,7 @@ const pickBody = (body) => {
   if (body.photoStyle !== undefined) out.photoStyle = body.photoStyle;
   if (body.headingStyle !== undefined) out.headingStyle = body.headingStyle;
   if (body.divider !== undefined) out.divider = body.divider;
+  if (body.pageBorder !== undefined) out.pageBorder = body.pageBorder;
   if (body.stickyNotes !== undefined) {
     out.stickyNotes = (Array.isArray(body.stickyNotes) ? body.stickyNotes : [])
       .filter((n) => n && typeof n === 'object' && n.id)
@@ -326,6 +328,7 @@ const invalidCustomization = (payload) => {
   if (payload.photoStyle && !PHOTO_STYLES.includes(payload.photoStyle)) return 'That photo style is not one we recognise';
   if (payload.headingStyle && !HEADING_STYLES.includes(payload.headingStyle)) return 'That heading style is not one we recognise';
   if (payload.divider && !DIVIDERS.includes(payload.divider)) return 'That divider style is not one we recognise';
+  if (payload.pageBorder && !PAGE_BORDERS.includes(payload.pageBorder)) return 'That page border is not one we recognise';
   if (payload.stickyNotes) {
     for (const note of payload.stickyNotes) {
       if (note.design && !STICKY_NOTE_DESIGNS.includes(note.design)) return 'That sticky note design is not one we recognise';

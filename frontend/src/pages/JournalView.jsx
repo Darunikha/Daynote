@@ -264,6 +264,7 @@ export default function JournalView() {
       <JournalPageFrame
         className={`overflow-hidden ${isMinimal ? 'p-6 sm:p-8' : 'p-6 sm:p-10'}`}
         style={getPaperBackground(entry.paperStyle)}
+        border={entry.pageBorder}
       >
         <DecorationLayer placements={entry.decorationPlacements} />
         {!isMinimal && (

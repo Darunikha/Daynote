@@ -1,3 +1,5 @@
+import PageBorderFrame from './PageBorderFrame';
+
 /**
  * Wraps the journal writing surface so it reads as a real, slightly-tilted
  * sheet of paper resting on a small stack of pages, rather than a plain
@@ -17,8 +19,13 @@
  * elements), so they can't ever paint over its content, decorations, or
  * sticky notes — CSS stacks positioned elements without an explicit
  * z-index by DOM order, and those all set their own z-index already.
+ *
+ * `border` (a PAGE_BORDERS value) draws a decorative frame — corner
+ * ornaments + tiled edge lines — hugging just inside this same edge, via
+ * PageBorderFrame. Its middle is always empty, so it never competes with
+ * the title, text, photos or sticky notes for space.
  */
-export default function JournalPageFrame({ children, className = '', style }) {
+export default function JournalPageFrame({ children, className = '', style, border = 'none' }) {
   return (
     <div className="relative">
       <div
@@ -47,6 +54,7 @@ export default function JournalPageFrame({ children, className = '', style }) {
         style={{ transform: 'rotate(-0.3deg)', ...style }}
       >
         <span aria-hidden="true" className="journal-grain pointer-events-none absolute inset-0" />
+        <PageBorderFrame value={border} />
         {children}
       </div>
     </div>

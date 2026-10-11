@@ -92,6 +92,18 @@ const PHOTO_STYLES = ['plain', 'polaroid', 'pinned', 'taped', 'framed'];
 const HEADING_STYLES = ['classic', 'handwritten', 'boxed', 'underline'];
 const DIVIDERS = ['none', 'dashed', 'floral', 'scallop'];
 
+// Decorative page borders drawn around the writing page — keep in sync with
+// frontend/src/utils/pageBorders.js.
+const PAGE_BORDERS = [
+  'none',
+  'ribbon-bow',
+  'scalloped-lace',
+  'floral-corner',
+  'vintage-swirl',
+  'ornamental-frame',
+  'rose-vine',
+];
+
 // Sticky notes — keep in sync with frontend/src/utils/stickyNotes.js
 const STICKY_NOTE_DESIGNS = [
   'scallop-floral',
@@ -167,6 +179,7 @@ const journalSchema = new mongoose.Schema(
     // Legacy single-charm field, kept only so entries saved before multi-charm
     // support still read back correctly (see withDecorations in the controller).
     decoration: { type: String, enum: DECORATIONS, default: 'none' },
+    pageBorder: { type: String, enum: PAGE_BORDERS, default: 'none' },
     // Kept in sync with decorationPlacements (just the type of each one) so
     // anything that only needs "which charms" — the dashboard card preview,
     // search — doesn't need to know about freeform placement at all.
@@ -245,6 +258,7 @@ module.exports.LAYOUTS = LAYOUTS;
 module.exports.PHOTO_STYLES = PHOTO_STYLES;
 module.exports.HEADING_STYLES = HEADING_STYLES;
 module.exports.DIVIDERS = DIVIDERS;
+module.exports.PAGE_BORDERS = PAGE_BORDERS;
 module.exports.STICKY_NOTE_DESIGNS = STICKY_NOTE_DESIGNS;
 module.exports.STICKY_NOTE_FONTS = STICKY_NOTE_FONTS;
 module.exports.STICKY_NOTE_SIZES = STICKY_NOTE_SIZES;
