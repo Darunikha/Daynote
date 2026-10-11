@@ -1,10 +1,8 @@
 /**
  * Decorative page borders — delicate, hand-drawn-style frames around the
  * writing page itself (see components/PageBorderFrame.jsx for the SVG art).
- * The reference image was six ribbon-frame designs all in shades of red,
- * not one design per colour family, so every style here uses its own red
- * tone (crimson, rose, brick, wine, garnet, coral) rather than spreading
- * across the palette — distinguishable by shade and by design, all red.
+ * Each style is its own shade of red, matching the reference image, while
+ * staying distinguishable by both shade and design.
  *
  * Keep the `value` list in sync with backend/models/Journal.js PAGE_BORDERS.
  */

@@ -8,162 +8,175 @@ const base = {
 
 /**
  * One corner motif per style, anchored to the top-left (0,0) corner with
- * its linework trailing ~40px along both edges so it blends into the tiled
- * edge strip. The other three corners reuse the same artwork, flipped with
- * a CSS transform — cheaper than drawing four corners, and symmetric
- * designs like these flip cleanly.
+ * its linework trailing a little along both edges so it blends into the
+ * line running between corners. The other three corners reuse the same
+ * artwork, flipped with a CSS transform — cheaper than drawing four
+ * corners, and symmetric designs like these flip cleanly. These are drawn
+ * at a fixed pixel size and never stretched, so proportions stay intact
+ * regardless of the page's size.
  */
 const CORNERS = {
   'ribbon-bow': (color) => (
-    <svg {...base} viewBox="0 0 50 50" width="46" height="46" fill="none">
-      <path d="M2 40Q2 10 40 2" stroke={color} strokeWidth="1.3" strokeLinecap="round" fill="none" opacity="0.7" />
+    <svg {...base} viewBox="0 0 50 50" width="42" height="42" fill="none">
+      <path d="M2 36Q2 10 36 2" stroke={color} strokeWidth="1.1" strokeLinecap="round" fill="none" opacity="0.65" />
+      {/* a proper two-loop bow with trailing tails, not a blob */}
       <path
-        d="M11 9c-2-3 1-6 4-4c1-3 5-2 4 1c3-1 4 3 1 4c2 2 0 5-3 4c0 3-4 3-4 0c-3 1-5-2-3-4c-2-1-1-4 1-1Z"
-        fill={`${color}33`}
+        d="M14 13c-3-4 1-8 5-5c1-4 7-3 6 1c4-1 6 4 2 6c3 3-1 7-5 5c-1 3-6 3-7-1c-4 1-6-4-2-6Z"
+        fill={`${color}2E`}
         stroke={color}
-        strokeWidth="1.3"
+        strokeWidth="1.2"
       />
-      <circle cx="11.5" cy="8.5" r="1.3" fill={color} />
-      <path d="M8 13q-4 2-3 7M14 13q4 2 3 7" stroke={color} strokeWidth="1.1" strokeLinecap="round" fill="none" />
+      <circle cx="16.5" cy="12.5" r="1.4" fill={color} />
+      <path d="M11 16q-5 2-4 9M21 16q5 2 4 9" stroke={color} strokeWidth="1.1" strokeLinecap="round" fill="none" />
     </svg>
   ),
   'scalloped-lace': (color) => (
-    <svg {...base} viewBox="0 0 50 50" width="44" height="44" fill="none">
-      <path d="M2 40Q2 2 40 2" stroke={color} strokeWidth="1.2" fill="none" opacity="0.5" />
-      <path d="M4 20Q4 12 12 12Q12 4 20 4" stroke={color} strokeWidth="1.3" fill="none" strokeLinecap="round" />
-      <circle cx="4" cy="20" r="1.6" fill={color} />
-      <circle cx="12" cy="12" r="1.6" fill={color} />
-      <circle cx="20" cy="4" r="1.6" fill={color} />
-      <path d="M6 27q7-7 14 0M13 6q7-7 14 0" stroke={color} strokeWidth="1" fill="none" opacity="0.6" />
+    <svg {...base} viewBox="0 0 50 50" width="40" height="40" fill="none">
+      <path d="M2 36Q2 2 36 2" stroke={color} strokeWidth="1" fill="none" opacity="0.45" />
+      <path d="M4 20Q4 12 12 12Q12 4 20 4" stroke={color} strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      <circle cx="4" cy="20" r="1.4" fill={color} />
+      <circle cx="12" cy="12" r="1.4" fill={color} />
+      <circle cx="20" cy="4" r="1.4" fill={color} />
     </svg>
   ),
   'floral-corner': (color) => (
-    <svg {...base} viewBox="0 0 50 50" width="46" height="46" fill="none">
-      <path d="M2 40Q2 10 40 2" stroke={color} strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.6" />
+    <svg {...base} viewBox="0 0 50 50" width="42" height="42" fill="none">
+      <path d="M2 36Q2 10 36 2" stroke={color} strokeWidth="1" strokeLinecap="round" fill="none" opacity="0.55" />
       <g>
-        <ellipse cx="12" cy="8" rx="3.4" ry="2" fill={`${color}55`} stroke={color} strokeWidth="1" transform="rotate(0 12 8)" />
-        <ellipse cx="12" cy="8" rx="3.4" ry="2" fill={`${color}55`} stroke={color} strokeWidth="1" transform="rotate(72 12 8)" />
-        <ellipse cx="12" cy="8" rx="3.4" ry="2" fill={`${color}55`} stroke={color} strokeWidth="1" transform="rotate(144 12 8)" />
-        <ellipse cx="12" cy="8" rx="3.4" ry="2" fill={`${color}55`} stroke={color} strokeWidth="1" transform="rotate(216 12 8)" />
-        <ellipse cx="12" cy="8" rx="3.4" ry="2" fill={`${color}55`} stroke={color} strokeWidth="1" transform="rotate(288 12 8)" />
-        <circle cx="12" cy="8" r="1.6" fill={color} />
+        <ellipse cx="12" cy="8" rx="3.2" ry="1.9" fill={`${color}4A`} stroke={color} strokeWidth="0.9" transform="rotate(0 12 8)" />
+        <ellipse cx="12" cy="8" rx="3.2" ry="1.9" fill={`${color}4A`} stroke={color} strokeWidth="0.9" transform="rotate(72 12 8)" />
+        <ellipse cx="12" cy="8" rx="3.2" ry="1.9" fill={`${color}4A`} stroke={color} strokeWidth="0.9" transform="rotate(144 12 8)" />
+        <ellipse cx="12" cy="8" rx="3.2" ry="1.9" fill={`${color}4A`} stroke={color} strokeWidth="0.9" transform="rotate(216 12 8)" />
+        <ellipse cx="12" cy="8" rx="3.2" ry="1.9" fill={`${color}4A`} stroke={color} strokeWidth="0.9" transform="rotate(288 12 8)" />
+        <circle cx="12" cy="8" r="1.4" fill={color} />
       </g>
-      <path d="M8 14q-5 1-6 7M18 10q5-1 7-6" stroke={color} strokeWidth="1.1" strokeLinecap="round" fill="none" />
-      <ellipse cx="5" cy="19" rx="2.2" ry="1.2" fill={`${color}44`} stroke={color} strokeWidth="0.9" transform="rotate(-30 5 19)" />
-      <ellipse cx="23" cy="6" rx="2.2" ry="1.2" fill={`${color}44`} stroke={color} strokeWidth="0.9" transform="rotate(30 23 6)" />
+      <ellipse cx="5" cy="19" rx="2" ry="1.1" fill={`${color}3A`} stroke={color} strokeWidth="0.8" transform="rotate(-30 5 19)" />
     </svg>
   ),
   'vintage-swirl': (color) => (
-    <svg {...base} viewBox="0 0 50 50" width="46" height="46" fill="none">
-      <path d="M3 38Q3 20 16 17Q24 15 22 9Q20 4 14 6Q10 7.5 12 11" stroke={color} strokeWidth="1.4" strokeLinecap="round" fill="none" />
-      <circle cx="12" cy="11" r="1.2" fill={color} />
-      <path d="M16 17Q28 14 38 3" stroke={color} strokeWidth="1.2" strokeLinecap="round" fill="none" opacity="0.7" />
+    <svg {...base} viewBox="0 0 50 50" width="42" height="42" fill="none">
+      <path d="M3 34Q3 18 14 15Q21 13 19 8Q17 4 12 6Q9 7.3 11 10" stroke={color} strokeWidth="1.2" strokeLinecap="round" fill="none" />
+      <circle cx="11" cy="10" r="1.1" fill={color} />
     </svg>
   ),
   'ornamental-frame': (color) => (
-    <svg {...base} viewBox="0 0 50 50" width="42" height="42" fill="none">
-      <path d="M4 40Q4 4 40 4" stroke={color} strokeWidth="1" fill="none" opacity="0.55" />
-      <path d="M2 34Q2 2 34 2" stroke={color} strokeWidth="1" fill="none" opacity="0.55" />
-      <rect x="8.5" y="8.5" width="7" height="7" fill={`${color}33`} stroke={color} strokeWidth="1.2" transform="rotate(45 12 12)" />
-      <circle cx="12" cy="12" r="1.3" fill={color} />
+    <svg {...base} viewBox="0 0 50 50" width="38" height="38" fill="none">
+      <path d="M4 36Q4 4 36 4" stroke={color} strokeWidth="0.9" fill="none" opacity="0.5" />
+      <path d="M2 30Q2 2 30 2" stroke={color} strokeWidth="0.9" fill="none" opacity="0.5" />
+      <rect x="8.5" y="8.5" width="6.5" height="6.5" fill={`${color}2E`} stroke={color} strokeWidth="1.1" transform="rotate(45 11.75 11.75)" />
+      <circle cx="11.75" cy="11.75" r="1.1" fill={color} />
     </svg>
   ),
   'rose-vine': (color) => (
-    <svg {...base} viewBox="0 0 50 50" width="46" height="46" fill="none">
-      <path d="M3 40Q3 12 38 4" stroke={color} strokeWidth="1.3" strokeLinecap="round" fill="none" opacity="0.65" />
+    <svg {...base} viewBox="0 0 50 50" width="42" height="42" fill="none">
+      <path d="M3 36Q3 12 34 4" stroke={color} strokeWidth="1.1" strokeLinecap="round" fill="none" opacity="0.6" />
       <g transform="translate(10 10)">
-        <circle r="3.4" fill={`${color}55`} stroke={color} strokeWidth="1" />
-        <path d="M0 -3.4A3.4 3.4 0 0 1 3 -1.5" stroke={color} strokeWidth="1" fill="none" />
-        <path d="M-2 2.5A3.4 3.4 0 0 1 -3.4 0" stroke={color} strokeWidth="1" fill="none" />
+        <circle r="3.2" fill={`${color}4A`} stroke={color} strokeWidth="0.9" />
+        <path d="M0 -3.2A3.2 3.2 0 0 1 2.8 -1.4" stroke={color} strokeWidth="0.9" fill="none" />
       </g>
-      <path d="M7 14q-5 0-6 6M14 6q0-5 6-6" stroke={color} strokeWidth="1.1" strokeLinecap="round" fill="none" />
+      <path d="M7 14q-5 0-6 6" stroke={color} strokeWidth="1" strokeLinecap="round" fill="none" />
     </svg>
   ),
 };
 
 /**
- * A small tileable motif per style, repeated along an edge as a CSS
- * background-image. Horizontal and vertical versions are drawn separately
- * (not one rotated via CSS) so the wave direction always reads as "running
- * along the edge" on every side.
+ * A single gentle flourish line per style, run between corners — not a
+ * repeated motif. `preserveAspectRatio="none"` lets it stretch to fit
+ * however long the edge is, but because it's just one or two broad
+ * curves (no fine detail to warp), stretching reads as "a ribbon drawn to
+ * length" rather than a distorted pattern. Horizontal and vertical are
+ * drawn separately so the curve always flows along the edge it's on.
  */
-const EDGE_TILES_H = {
-  'ribbon-bow': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='16'><path d='M1 8q3-6 6 0t6 0t6 0t6 0' stroke='${color}' stroke-width='1.3' fill='none' stroke-linecap='round'/><circle cx='14' cy='8' r='1.1' fill='${color}'/></svg>`,
-  'scalloped-lace': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='18' height='12'><path d='M0 10Q4.5 1 9 10Q13.5 1 18 10' stroke='${color}' stroke-width='1.2' fill='none'/></svg>`,
-  'floral-corner': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='26' height='16'><path d='M1 13Q7 3 13 13Q19 3 25 13' stroke='${color}' stroke-width='1.1' fill='none'/><ellipse cx='7' cy='8' rx='2' ry='1.1' fill='${color}' opacity='.8' transform='rotate(-30 7 8)'/><ellipse cx='19' cy='8' rx='2' ry='1.1' fill='${color}' opacity='.8' transform='rotate(30 19 8)'/></svg>`,
-  'vintage-swirl': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='14'><path d='M0 7Q6 0 12 7T24 7' stroke='${color}' stroke-width='1.2' fill='none'/></svg>`,
-  'ornamental-frame': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='22' height='12'><line x1='0' y1='3.5' x2='22' y2='3.5' stroke='${color}' stroke-width='0.9'/><line x1='0' y1='8.5' x2='22' y2='8.5' stroke='${color}' stroke-width='0.9'/><rect x='9' y='4' width='4' height='4' fill='${color}' transform='rotate(45 11 6)'/></svg>`,
-  'rose-vine': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='24' height='14'><path d='M0 11Q6 2 12 11T24 11' stroke='${color}' stroke-width='1.2' fill='none'/><circle cx='12' cy='6.5' r='1.5' fill='${color}'/></svg>`,
+const EDGES_H = {
+  'ribbon-bow': (color) => (
+    <path d="M0 6Q20 0 40 6Q60 12 80 6Q90 3 100 6" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.6" vectorEffect="non-scaling-stroke" />
+  ),
+  'scalloped-lace': (color) => (
+    <path d="M0 10Q25 1 50 10Q75 1 100 10" stroke={color} strokeWidth="1" fill="none" opacity="0.55" vectorEffect="non-scaling-stroke" />
+  ),
+  'floral-corner': (color) => (
+    <path d="M0 8Q30 1 50 8Q70 15 100 8" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
+  ),
+  'vintage-swirl': (color) => (
+    <path d="M0 7C30 -3 70 17 100 7" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
+  ),
+  'ornamental-frame': (color) => (
+    <>
+      <line x1="0" y1="2.5" x2="100" y2="2.5" stroke={color} strokeWidth="0.8" opacity="0.5" vectorEffect="non-scaling-stroke" />
+      <line x1="0" y1="9.5" x2="100" y2="9.5" stroke={color} strokeWidth="0.8" opacity="0.5" vectorEffect="non-scaling-stroke" />
+    </>
+  ),
+  'rose-vine': (color) => (
+    <path d="M0 8Q30 1 50 8Q70 15 100 8" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
+  ),
 };
 
-/** Same motifs, running top-to-bottom instead of left-to-right. */
-const EDGE_TILES_V = {
-  'ribbon-bow': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='16' height='28'><path d='M8 1q-6 3 0 6t0 6t0 6t0 6' stroke='${color}' stroke-width='1.3' fill='none' stroke-linecap='round'/><circle cx='8' cy='14' r='1.1' fill='${color}'/></svg>`,
-  'scalloped-lace': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='12' height='18'><path d='M10 0Q1 4.5 10 9Q1 13.5 10 18' stroke='${color}' stroke-width='1.2' fill='none'/></svg>`,
-  'floral-corner': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='16' height='26'><path d='M13 1Q3 7 13 13Q3 19 13 25' stroke='${color}' stroke-width='1.1' fill='none'/><ellipse cx='8' cy='7' rx='1.1' ry='2' fill='${color}' opacity='.8' transform='rotate(-30 8 7)'/><ellipse cx='8' cy='19' rx='1.1' ry='2' fill='${color}' opacity='.8' transform='rotate(30 8 19)'/></svg>`,
-  'vintage-swirl': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='14' height='24'><path d='M7 0Q0 6 7 12T7 24' stroke='${color}' stroke-width='1.2' fill='none'/></svg>`,
-  'ornamental-frame': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='12' height='22'><line x1='3.5' y1='0' x2='3.5' y2='22' stroke='${color}' stroke-width='0.9'/><line x1='8.5' y1='0' x2='8.5' y2='22' stroke='${color}' stroke-width='0.9'/><rect x='4' y='9' width='4' height='4' fill='${color}' transform='rotate(45 6 11)'/></svg>`,
-  'rose-vine': (color) =>
-    `<svg xmlns='http://www.w3.org/2000/svg' width='14' height='24'><path d='M11 0Q2 6 11 12T11 24' stroke='${color}' stroke-width='1.2' fill='none'/><circle cx='6.5' cy='12' r='1.5' fill='${color}'/></svg>`,
+/** Same flourishes, running top-to-bottom instead of left-to-right. */
+const EDGES_V = {
+  'ribbon-bow': (color) => (
+    <path d="M6 0Q0 20 6 40Q12 60 6 80Q3 90 6 100" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.6" vectorEffect="non-scaling-stroke" />
+  ),
+  'scalloped-lace': (color) => (
+    <path d="M10 0Q1 25 10 50Q1 75 10 100" stroke={color} strokeWidth="1" fill="none" opacity="0.55" vectorEffect="non-scaling-stroke" />
+  ),
+  'floral-corner': (color) => (
+    <path d="M8 0Q1 30 8 50Q15 70 8 100" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
+  ),
+  'vintage-swirl': (color) => (
+    <path d="M7 0C-3 30 17 70 7 100" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
+  ),
+  'ornamental-frame': (color) => (
+    <>
+      <line x1="2.5" y1="0" x2="2.5" y2="100" stroke={color} strokeWidth="0.8" opacity="0.5" vectorEffect="non-scaling-stroke" />
+      <line x1="9.5" y1="0" x2="9.5" y2="100" stroke={color} strokeWidth="0.8" opacity="0.5" vectorEffect="non-scaling-stroke" />
+    </>
+  ),
+  'rose-vine': (color) => (
+    <path d="M8 0Q1 30 8 50Q15 70 8 100" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
+  ),
 };
-
-const tileUrl = (tiles, variant, color) => `url("data:image/svg+xml,${encodeURIComponent(tiles[variant](color))}")`;
 
 /**
  * A decorative frame around the writing page: four corner ornaments (one
- * motif, flipped into each corner) plus a tiled line running between them
- * along all four edges. The middle stays completely empty — this never
- * overlaps the title, text, photos or sticky notes, only the outer ~40px
- * margin. Tiling (rather than stretching one big SVG) keeps the linework
- * crisp at any page size instead of warping on resize.
+ * motif, flipped into each corner, drawn at a fixed size — never
+ * stretched) plus one gentle flourish line running between them along
+ * each edge. The middle stays completely empty — this never overlaps the
+ * title, text, photos or sticky notes, only the outer margin.
  */
 export default function PageBorderFrame({ value }) {
   const meta = getPageBorder(value);
   if (!meta.color) return null;
 
   const Corner = CORNERS[value];
+  const EdgeH = EDGES_H[value];
+  const EdgeV = EDGES_V[value];
   if (!Corner) return null;
 
   return (
     <div className="pointer-events-none absolute inset-0 z-[2]" aria-hidden="true">
-      {/* edges — thin tiled strips between the corners */}
-      <div
-        className="absolute left-11 right-11 top-1.5 h-4"
-        style={{ backgroundImage: tileUrl(EDGE_TILES_H, value, meta.color), backgroundRepeat: 'repeat-x', opacity: 0.85 }}
-      />
-      <div
-        className="absolute left-11 right-11 bottom-1.5 h-4"
-        style={{
-          backgroundImage: tileUrl(EDGE_TILES_H, value, meta.color),
-          backgroundRepeat: 'repeat-x',
-          opacity: 0.85,
-          transform: 'scaleY(-1)',
-        }}
-      />
-      <div
-        className="absolute top-11 bottom-11 left-1.5 w-4"
-        style={{ backgroundImage: tileUrl(EDGE_TILES_V, value, meta.color), backgroundRepeat: 'repeat-y', opacity: 0.85 }}
-      />
-      <div
-        className="absolute top-11 bottom-11 right-1.5 w-4"
-        style={{
-          backgroundImage: tileUrl(EDGE_TILES_V, value, meta.color),
-          backgroundRepeat: 'repeat-y',
-          opacity: 0.85,
-          transform: 'scaleX(-1)',
-        }}
-      />
+      {/* edges — one flourish line stretched to span between the corners */}
+      <svg className="absolute left-10 right-10 top-2 h-3" viewBox="0 0 100 12" preserveAspectRatio="none">
+        {EdgeH(meta.color)}
+      </svg>
+      <svg
+        className="absolute left-10 right-10 bottom-2 h-3"
+        viewBox="0 0 100 12"
+        preserveAspectRatio="none"
+        style={{ transform: 'scaleY(-1)' }}
+      >
+        {EdgeH(meta.color)}
+      </svg>
+      <svg className="absolute top-10 bottom-10 left-2 w-3" viewBox="0 0 12 100" preserveAspectRatio="none">
+        {EdgeV(meta.color)}
+      </svg>
+      <svg
+        className="absolute top-10 bottom-10 right-2 w-3"
+        viewBox="0 0 12 100"
+        preserveAspectRatio="none"
+        style={{ transform: 'scaleX(-1)' }}
+      >
+        {EdgeV(meta.color)}
+      </svg>
 
       {/* corners */}
       <span className="absolute left-1 top-1">{Corner(meta.color)}</span>
