@@ -1,20 +1,21 @@
 /**
  * Decorative page borders — delicate, hand-drawn-style frames around the
  * writing page itself (see components/PageBorderFrame.jsx for the SVG art).
- * Each has one signature colour, so picking a style also picks its colour;
- * that keeps the set to a manageable handful of genuinely distinct designs
- * instead of a full style×colour matrix.
+ * The reference image was six ribbon-frame designs all in shades of red,
+ * not one design per colour family, so every style here uses its own red
+ * tone (crimson, rose, brick, wine, garnet, coral) rather than spreading
+ * across the palette — distinguishable by shade and by design, all red.
  *
  * Keep the `value` list in sync with backend/models/Journal.js PAGE_BORDERS.
  */
 export const PAGE_BORDERS = [
   { value: 'none', label: 'None / Plain' },
-  { value: 'ribbon-bow', label: 'Ribbon & Bow', color: '#C0485A' },
-  { value: 'scalloped-lace', label: 'Scalloped Lace', color: '#D98CA0' },
-  { value: 'floral-corner', label: 'Floral Corner', color: '#7E9A6D' },
-  { value: 'vintage-swirl', label: 'Vintage Swirl', color: '#8B5E3C' },
-  { value: 'ornamental-frame', label: 'Ornamental Frame', color: '#9A86B8' },
-  { value: 'rose-vine', label: 'Rose Vine', color: '#C77B4E' },
+  { value: 'ribbon-bow', label: 'Ribbon & Bow', color: '#C0344A' },
+  { value: 'scalloped-lace', label: 'Scalloped Lace', color: '#D9667A' },
+  { value: 'floral-corner', label: 'Floral Corner', color: '#B23A4E' },
+  { value: 'vintage-swirl', label: 'Vintage Swirl', color: '#8B3A3A' },
+  { value: 'ornamental-frame', label: 'Ornamental Frame', color: '#A23B4A' },
+  { value: 'rose-vine', label: 'Rose Vine', color: '#C0392B' },
 ];
 
 export const PAGE_BORDER_VALUES = PAGE_BORDERS.map((b) => b.value);
