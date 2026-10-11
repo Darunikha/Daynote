@@ -8,8 +8,8 @@ const base = {
 
 /**
  * One corner motif per style, anchored to the top-left (0,0) corner with
- * its linework trailing a little along both edges so it blends into the
- * line running between corners. The other three corners reuse the same
+ * its ribbon tails trailing along both edges so they meet the ribbon line
+ * running between corners. The other three corners reuse the same
  * artwork, flipped with a CSS transform — cheaper than drawing four
  * corners, and symmetric designs like these flip cleanly. These are drawn
  * at a fixed pixel size and never stretched, so proportions stay intact
@@ -17,17 +17,13 @@ const base = {
  */
 const CORNERS = {
   'ribbon-bow': (color) => (
-    <svg {...base} viewBox="0 0 50 50" width="42" height="42" fill="none">
-      <path d="M2 36Q2 10 36 2" stroke={color} strokeWidth="1.1" strokeLinecap="round" fill="none" opacity="0.65" />
-      {/* a proper two-loop bow with trailing tails, not a blob */}
-      <path
-        d="M14 13c-3-4 1-8 5-5c1-4 7-3 6 1c4-1 6 4 2 6c3 3-1 7-5 5c-1 3-6 3-7-1c-4 1-6-4-2-6Z"
-        fill={`${color}2E`}
-        stroke={color}
-        strokeWidth="1.2"
-      />
-      <circle cx="16.5" cy="12.5" r="1.4" fill={color} />
-      <path d="M11 16q-5 2-4 9M21 16q5 2 4 9" stroke={color} strokeWidth="1.1" strokeLinecap="round" fill="none" />
+    <svg {...base} viewBox="0 0 56 56" width="48" height="48" fill="none">
+      {/* two curling tails, like a bow's ribbon ends trailing off the corner */}
+      <path d="M17 22q-8 3-8 13M23 16q3-8 13-8" stroke={color} strokeWidth="1.3" strokeLinecap="round" fill="none" />
+      {/* a bow-tie: two symmetric loops meeting at a center knot */}
+      <path d="M20 16C14 9 7 10 7 16C7 22 14 23 20 16Z" fill={`${color}2E`} stroke={color} strokeWidth="1.3" strokeLinejoin="round" />
+      <path d="M20 16C26 9 33 10 33 16C33 22 26 23 20 16Z" fill={`${color}2E`} stroke={color} strokeWidth="1.3" strokeLinejoin="round" />
+      <circle cx="20" cy="16" r="2.3" fill={color} />
     </svg>
   ),
   'scalloped-lace': (color) => (
@@ -80,68 +76,89 @@ const CORNERS = {
 };
 
 /**
- * A single gentle flourish line per style, run between corners — not a
- * repeated motif. `preserveAspectRatio="none"` lets it stretch to fit
- * however long the edge is, but because it's just one or two broad
- * curves (no fine detail to warp), stretching reads as "a ribbon drawn to
- * length" rather than a distorted pattern. Horizontal and vertical are
- * drawn separately so the curve always flows along the edge it's on.
+ * Two close parallel curves (a ribbon's two edges) plus a couple of bead
+ * dots, run between corners — not a repeated motif. `preserveAspectRatio=
+ * "none"` lets it stretch to fit however long the edge is, but because
+ * it's just one or two broad curves (no fine detail to warp), stretching
+ * reads as "a ribbon drawn to length" rather than a distorted pattern.
+ * Horizontal and vertical are drawn separately so the ribbon always flows
+ * along the edge it's on.
  */
+const ribbonH = (outer, inner, dots) => (color) => (
+  <>
+    <path d={outer} stroke={color} strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.75" vectorEffect="non-scaling-stroke" />
+    <path d={inner} stroke={color} strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.5" vectorEffect="non-scaling-stroke" />
+    {dots.map(([x, y], i) => (
+      <circle key={i} cx={x} cy={y} r="0.9" fill={color} opacity="0.8" />
+    ))}
+  </>
+);
+
 const EDGES_H = {
-  'ribbon-bow': (color) => (
-    <path d="M0 6Q20 0 40 6Q60 12 80 6Q90 3 100 6" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.6" vectorEffect="non-scaling-stroke" />
-  ),
-  'scalloped-lace': (color) => (
-    <path d="M0 10Q25 1 50 10Q75 1 100 10" stroke={color} strokeWidth="1" fill="none" opacity="0.55" vectorEffect="non-scaling-stroke" />
-  ),
-  'floral-corner': (color) => (
-    <path d="M0 8Q30 1 50 8Q70 15 100 8" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
-  ),
-  'vintage-swirl': (color) => (
-    <path d="M0 7C30 -3 70 17 100 7" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
-  ),
+  'ribbon-bow': ribbonH('M0 4Q20 -2 40 4Q60 10 80 4Q90 1 100 4', 'M0 8Q20 2 40 8Q60 14 80 8Q90 5 100 8', [
+    [20, 1],
+    [50, 10],
+    [80, 1],
+  ]),
+  'scalloped-lace': ribbonH('M0 8Q25 -1 50 8Q75 -1 100 8', 'M0 11Q25 2 50 11Q75 2 100 11', [
+    [25, -1],
+    [75, -1],
+  ]),
+  'floral-corner': ribbonH('M0 6Q30 -1 50 6Q70 13 100 6', 'M0 10Q30 3 50 10Q70 17 100 10', [
+    [15, 2],
+    [85, 2],
+  ]),
+  'vintage-swirl': ribbonH('M0 5C30 -5 70 15 100 5', 'M0 9C30 -1 70 19 100 9', []),
   'ornamental-frame': (color) => (
     <>
       <line x1="0" y1="2.5" x2="100" y2="2.5" stroke={color} strokeWidth="0.8" opacity="0.5" vectorEffect="non-scaling-stroke" />
       <line x1="0" y1="9.5" x2="100" y2="9.5" stroke={color} strokeWidth="0.8" opacity="0.5" vectorEffect="non-scaling-stroke" />
     </>
   ),
-  'rose-vine': (color) => (
-    <path d="M0 8Q30 1 50 8Q70 15 100 8" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
-  ),
+  'rose-vine': ribbonH('M0 6Q30 -1 50 6Q70 13 100 6', 'M0 10Q30 3 50 10Q70 17 100 10', [[50, 11]]),
 };
 
-/** Same flourishes, running top-to-bottom instead of left-to-right. */
+const ribbonV = (outer, inner, dots) => (color) => (
+  <>
+    <path d={outer} stroke={color} strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.75" vectorEffect="non-scaling-stroke" />
+    <path d={inner} stroke={color} strokeWidth="0.9" fill="none" strokeLinecap="round" opacity="0.5" vectorEffect="non-scaling-stroke" />
+    {dots.map(([x, y], i) => (
+      <circle key={i} cx={x} cy={y} r="0.9" fill={color} opacity="0.8" />
+    ))}
+  </>
+);
+
+/** Same ribbons, running top-to-bottom instead of left-to-right. */
 const EDGES_V = {
-  'ribbon-bow': (color) => (
-    <path d="M6 0Q0 20 6 40Q12 60 6 80Q3 90 6 100" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.6" vectorEffect="non-scaling-stroke" />
-  ),
-  'scalloped-lace': (color) => (
-    <path d="M10 0Q1 25 10 50Q1 75 10 100" stroke={color} strokeWidth="1" fill="none" opacity="0.55" vectorEffect="non-scaling-stroke" />
-  ),
-  'floral-corner': (color) => (
-    <path d="M8 0Q1 30 8 50Q15 70 8 100" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
-  ),
-  'vintage-swirl': (color) => (
-    <path d="M7 0C-3 30 17 70 7 100" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
-  ),
+  'ribbon-bow': ribbonV('M4 0Q-2 20 4 40Q10 60 4 80Q1 90 4 100', 'M8 0Q2 20 8 40Q14 60 8 80Q5 90 8 100', [
+    [1, 20],
+    [10, 50],
+    [1, 80],
+  ]),
+  'scalloped-lace': ribbonV('M8 0Q-1 25 8 50Q-1 75 8 100', 'M11 0Q2 25 11 50Q2 75 11 100', [
+    [-1, 25],
+    [-1, 75],
+  ]),
+  'floral-corner': ribbonV('M6 0Q-1 30 6 50Q13 70 6 100', 'M10 0Q3 30 10 50Q17 70 10 100', [
+    [2, 15],
+    [2, 85],
+  ]),
+  'vintage-swirl': ribbonV('M5 0C-5 30 15 70 5 100', 'M9 0C-1 30 19 70 9 100', []),
   'ornamental-frame': (color) => (
     <>
       <line x1="2.5" y1="0" x2="2.5" y2="100" stroke={color} strokeWidth="0.8" opacity="0.5" vectorEffect="non-scaling-stroke" />
       <line x1="9.5" y1="0" x2="9.5" y2="100" stroke={color} strokeWidth="0.8" opacity="0.5" vectorEffect="non-scaling-stroke" />
     </>
   ),
-  'rose-vine': (color) => (
-    <path d="M8 0Q1 30 8 50Q15 70 8 100" stroke={color} strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.55" vectorEffect="non-scaling-stroke" />
-  ),
+  'rose-vine': ribbonV('M6 0Q-1 30 6 50Q13 70 6 100', 'M10 0Q3 30 10 50Q17 70 10 100', [[11, 50]]),
 };
 
 /**
  * A decorative frame around the writing page: four corner ornaments (one
  * motif, flipped into each corner, drawn at a fixed size — never
- * stretched) plus one gentle flourish line running between them along
- * each edge. The middle stays completely empty — this never overlaps the
- * title, text, photos or sticky notes, only the outer margin.
+ * stretched) plus a two-line ribbon with bead dots running between them
+ * along each edge. The middle stays completely empty — this never
+ * overlaps the title, text, photos or sticky notes, only the outer margin.
  */
 export default function PageBorderFrame({ value }) {
   const meta = getPageBorder(value);
@@ -154,23 +171,23 @@ export default function PageBorderFrame({ value }) {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-[2]" aria-hidden="true">
-      {/* edges — one flourish line stretched to span between the corners */}
-      <svg className="absolute left-10 right-10 top-2 h-3" viewBox="0 0 100 12" preserveAspectRatio="none">
+      {/* edges — a ribbon stretched to span between the corners */}
+      <svg className="absolute left-11 right-11 top-2 h-4" viewBox="0 0 100 12" preserveAspectRatio="none">
         {EdgeH(meta.color)}
       </svg>
       <svg
-        className="absolute left-10 right-10 bottom-2 h-3"
+        className="absolute left-11 right-11 bottom-2 h-4"
         viewBox="0 0 100 12"
         preserveAspectRatio="none"
         style={{ transform: 'scaleY(-1)' }}
       >
         {EdgeH(meta.color)}
       </svg>
-      <svg className="absolute top-10 bottom-10 left-2 w-3" viewBox="0 0 12 100" preserveAspectRatio="none">
+      <svg className="absolute top-11 bottom-11 left-2 w-4" viewBox="0 0 12 100" preserveAspectRatio="none">
         {EdgeV(meta.color)}
       </svg>
       <svg
-        className="absolute top-10 bottom-10 right-2 w-3"
+        className="absolute top-11 bottom-11 right-2 w-4"
         viewBox="0 0 12 100"
         preserveAspectRatio="none"
         style={{ transform: 'scaleX(-1)' }}
