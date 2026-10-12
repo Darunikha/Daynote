@@ -18,6 +18,12 @@ import { getPageBorder } from '../utils/pageBorders';
  * The image's own transparent center means there's nothing to clip — the
  * middle of the page stays completely empty no matter how the box resizes,
  * so this can never overlap the title, text, photos or sticky notes.
+ *
+ * Width is 84px, not a slimmer value — the source art is ~400–480px per
+ * side, and squeezing it into a thin border forces the browser to
+ * downscale it hard, which read as smudged/blurry (confirmed by comparing
+ * renders at two widths side by side: thinner was visibly softer, not a
+ * flaw in the artwork itself). More width gives it room to stay crisp.
  */
 export default function PageBorderFrame({ value }) {
   const meta = getPageBorder(value);
@@ -29,10 +35,10 @@ export default function PageBorderFrame({ value }) {
       aria-hidden="true"
       style={{
         borderStyle: 'solid',
-        borderWidth: 56,
+        borderWidth: 84,
         borderImageSource: `url(${meta.src})`,
         borderImageSlice: `${meta.slice}%`,
-        borderImageWidth: '56px',
+        borderImageWidth: '84px',
         borderImageRepeat: 'round',
       }}
     />

@@ -504,7 +504,14 @@ export default function JournalEditor() {
         <div className="min-w-0">
         <JournalPageFrame
           className="flex flex-col p-6 sm:p-10 lg:min-h-[82vh]"
-          style={getPaperBackground(form.paperStyle)}
+          style={{
+            ...getPaperBackground(form.paperStyle),
+            // The border art is 84px thick — wider than the page's own
+            // 24–40px padding — so push the writing area in further
+            // whenever one is picked, or the border would sit on top of
+            // the title and text instead of framing them.
+            ...(form.pageBorder !== 'none' ? { padding: '92px 64px' } : null),
+          }}
           border={form.pageBorder}
         >
           <DecorationLayer
