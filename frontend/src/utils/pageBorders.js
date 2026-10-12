@@ -5,32 +5,25 @@ import classicBow from '../assets/borders/classic-bow.png';
 import scallopedBow from '../assets/borders/scalloped-bow.png';
 import curvedBow from '../assets/borders/curved-bow.png';
 
-import ribbonLoopCorner from '../assets/borders/corners/ribbon-loop.png';
-import ribbonWaveCorner from '../assets/borders/corners/ribbon-wave.png';
-import heartBowCorner from '../assets/borders/corners/heart-bow.png';
-import classicBowCorner from '../assets/borders/corners/classic-bow.png';
-import scallopedBowCorner from '../assets/borders/corners/scalloped-bow.png';
-import curvedBowCorner from '../assets/borders/corners/curved-bow.png';
-
 /**
- * Decorative page borders — real hand-drawn ribbon/bow artwork around the
- * writing page. `corner` is a piece actually cropped from the source
- * illustration (the bow, drawn at a fixed size, never stretched); `src`
- * is the full original frame, used only for the picker's preview
- * thumbnail; `lineColor` is a shade sampled from the art, used for the
- * single procedural line connecting the corners (see
- * components/PageBorderFrame.jsx for why it isn't tiled from the photo).
+ * Decorative page borders — real hand-drawn ribbon/bow frame artwork
+ * (transparent PNGs) around the writing page itself, rendered via CSS
+ * `border-image` (see components/PageBorderFrame.jsx) rather than
+ * hand-coded SVG. `src` is a Vite-imported asset URL so it gets bundled
+ * and hashed correctly in production; `slice` is the border-image-slice
+ * percentage tuned per image so each one's corner bows land inside the
+ * unstretched corner region instead of being cut or stretched.
  *
  * Keep the `value` list in sync with backend/models/Journal.js PAGE_BORDERS.
  */
 export const PAGE_BORDERS = [
   { value: 'none', label: 'None / Plain' },
-  { value: 'ribbon-loop', label: 'Ribbon Loop', src: ribbonLoop, corner: ribbonLoopCorner, lineColor: '#C0344A' },
-  { value: 'ribbon-wave', label: 'Ribbon Wave', src: ribbonWave, corner: ribbonWaveCorner, lineColor: '#C23E52' },
-  { value: 'heart-bow', label: 'Heart & Bow', src: heartBow, corner: heartBowCorner, lineColor: '#B23A4E' },
-  { value: 'classic-bow', label: 'Classic Bow', src: classicBow, corner: classicBowCorner, lineColor: '#A23B4A' },
-  { value: 'scalloped-bow', label: 'Scalloped Bow', src: scallopedBow, corner: scallopedBowCorner, lineColor: '#D9667A' },
-  { value: 'curved-bow', label: 'Curved Bow', src: curvedBow, corner: curvedBowCorner, lineColor: '#C0392B' },
+  { value: 'ribbon-loop', label: 'Ribbon Loop', src: ribbonLoop, slice: 34 },
+  { value: 'ribbon-wave', label: 'Ribbon Wave', src: ribbonWave, slice: 30 },
+  { value: 'heart-bow', label: 'Heart & Bow', src: heartBow, slice: 32 },
+  { value: 'classic-bow', label: 'Classic Bow', src: classicBow, slice: 30 },
+  { value: 'scalloped-bow', label: 'Scalloped Bow', src: scallopedBow, slice: 22 },
+  { value: 'curved-bow', label: 'Curved Bow', src: curvedBow, slice: 28 },
 ];
 
 export const PAGE_BORDER_VALUES = PAGE_BORDERS.map((b) => b.value);
