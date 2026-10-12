@@ -96,12 +96,12 @@ const DIVIDERS = ['none', 'dashed', 'floral', 'scallop'];
 // frontend/src/utils/pageBorders.js.
 const PAGE_BORDERS = [
   'none',
-  'ribbon-bow',
-  'scalloped-lace',
-  'floral-corner',
-  'vintage-swirl',
-  'ornamental-frame',
-  'rose-vine',
+  'ribbon-loop',
+  'ribbon-wave',
+  'heart-bow',
+  'classic-bow',
+  'scalloped-bow',
+  'curved-bow',
 ];
 
 // Sticky notes — keep in sync with frontend/src/utils/stickyNotes.js

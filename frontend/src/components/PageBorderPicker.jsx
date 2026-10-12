@@ -1,23 +1,31 @@
 import { Check, Ban } from 'lucide-react';
 import { PAGE_BORDERS, getPageBorder } from '../utils/pageBorders';
-import PageBorderFrame from './PageBorderFrame';
 
-/** Small preview tile — the actual border art, shrunk onto a swatch-sized card. */
+/**
+ * Small preview tile. At swatch size the actual border-image proportions
+ * (a 56px border on a full-size page) wouldn't read at all, so this shows
+ * the whole illustration shrunk down instead — still the real artwork,
+ * just previewed differently than it's used on the page itself.
+ */
 function Swatch({ value, size = 52 }) {
   const meta = getPageBorder(value);
   return (
     <span
       aria-hidden="true"
-      className="relative block shrink-0 overflow-hidden rounded-lg border"
+      className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-lg border"
       style={{
         width: size,
         height: size,
-        borderStyle: meta.color ? 'solid' : 'dashed',
-        borderColor: meta.color ? 'rgb(var(--border))' : 'rgb(var(--text-muted) / 0.4)',
+        borderStyle: meta.src ? 'solid' : 'dashed',
+        borderColor: meta.src ? 'rgb(var(--border))' : 'rgb(var(--text-muted) / 0.4)',
         backgroundColor: 'rgb(var(--surface))',
       }}
     >
-      {meta.color ? <PageBorderFrame value={value} /> : <Ban size={16} className="absolute inset-0 m-auto" style={{ color: 'rgb(var(--text-muted))' }} />}
+      {meta.src ? (
+        <img src={meta.src} alt="" className="h-full w-full object-contain p-0.5" />
+      ) : (
+        <Ban size={16} style={{ color: 'rgb(var(--text-muted))' }} />
+      )}
     </span>
   );
 }

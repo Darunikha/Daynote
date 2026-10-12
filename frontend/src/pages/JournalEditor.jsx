@@ -397,9 +397,10 @@ export default function JournalEditor() {
               aria-hidden="true"
             >
               {form.pageBorder !== 'none' && (
-                <span
-                  className="absolute rounded-full"
-                  style={{ inset: 3, backgroundColor: getPageBorder(form.pageBorder).color }}
+                <img
+                  src={getPageBorder(form.pageBorder).src}
+                  alt=""
+                  className="absolute inset-0.5 h-5 w-5 object-contain"
                 />
               )}
             </span>
