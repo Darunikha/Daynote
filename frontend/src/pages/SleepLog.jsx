@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Moon, Save, Trash2 } from 'lucide-react';
 import Calendar from '../components/Calendar';
+import TimePicker from '../components/TimePicker';
 import { SleepQualityDonut, SleepQualityLegend } from '../components/SleepChart';
 import { SkeletonLines } from '../components/Loading';
 import EmptyState from '../components/EmptyState';
@@ -161,27 +162,19 @@ export default function SleepLog() {
 
             <div className="mb-4 grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="bedTime" className="label !mb-1 !text-[11px]">
-                  Bedtime
-                </label>
-                <input
+                <TimePicker
                   id="bedTime"
-                  type="time"
+                  label="Bedtime"
                   value={form.bedTime}
-                  onChange={(e) => setForm((f) => ({ ...f, bedTime: e.target.value }))}
-                  className="input !py-2 !text-sm"
+                  onChange={(bedTime) => setForm((f) => ({ ...f, bedTime }))}
                 />
               </div>
               <div>
-                <label htmlFor="wakeTime" className="label !mb-1 !text-[11px]">
-                  Wake time
-                </label>
-                <input
+                <TimePicker
                   id="wakeTime"
-                  type="time"
+                  label="Wake time"
                   value={form.wakeTime}
-                  onChange={(e) => setForm((f) => ({ ...f, wakeTime: e.target.value }))}
-                  className="input !py-2 !text-sm"
+                  onChange={(wakeTime) => setForm((f) => ({ ...f, wakeTime }))}
                 />
               </div>
             </div>
