@@ -2,52 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Moon } from 'lucide-react';
 import { formatTime12h } from '../utils/sleep';
 
-const HOURS = Array.from({ length: 12 }, (_, i) => i + 1); // 1–12
-const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5); // :00, :05 … :55 — plenty precise for a bedtime
-
-const to24 = (h12, m, period) => {
-  let h = h12 % 12;
-  if (period === 'PM') h += 12;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-};
-
-const from24 = (hhmm) => {
-  const [h, m] = hhmm.split(':').map(Number);
-  const period = h >= 12 ? 'PM' : 'AM';
-  return { h12: h % 12 || 12, m, period };
-};
-
-/** One scrollable column of pill options, used for hour/minute/AM-PM. */
-function Column({ items, active, onPick, pad }) {
-  const activeRef = useRef(null);
-
-  useEffect(() => {
-    activeRef.current?.scrollIntoView({ block: 'center' });
-  }, []);
-
-  return (
-    <div className="flex max-h-44 flex-1 flex-col gap-0.5 overflow-y-auto">
-      {items.map((it) => {
-        const isActive = it === active;
-        return (
-          <button
-            key={it}
-            ref={isActive ? activeRef : undefined}
-            type="button"
-            onClick={() => onPick(it)}
-            className="shrink-0 rounded-lg px-2 py-1.5 text-center text-sm font-medium transition-colors"
-            style={{
-              backgroundColor: isActive ? 'rgb(var(--accent-soft))' : 'transparent',
-              color: isActive ? 'rgb(var(--heading))' : 'rgb(var(--text-muted))',
-            }}
-          >
-            {pad ? String(it).padStart(2, '0') : it}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+// Every half hour, the whole day — one list, one tap, done. (24h × 2 = 48
+// options short enough to scroll through at a glance; a bedtime rarely
+// needs finer than that.)
+const TIMES = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2);
+  const m = i % 2 === 0 ? '00' : '30';
+  return `${String(h).padStart(2, '0')}:${m}`;
+});
 
 /**
  * A custom time picker, standing in for `<input type="time">` — the
@@ -55,15 +17,15 @@ function Column({ items, active, onPick, pad }) {
  * all, in any browser, so matching the app's soft/cute look means
  * replacing it rather than theming it.
  *
- * Works in 5-minute steps rather than 1-minute — a bedtime/wake time
- * rarely needs more precision than that, and it keeps the minute column
- * the same comfortable length as the hour column instead of a 60-item list.
+ * One scrollable list of ready-made times (half-hour steps) rather than
+ * separate hour/minute/AM-PM dials — picking a time is one tap on the
+ * option you want, not coordinating three columns. Opening it
+ * auto-scrolls to whatever time is already set.
  */
 export default function TimePicker({ value, onChange, label, id }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const { h12, m, period } = from24(value);
-  const mRounded = (Math.round(m / 5) * 5) % 60;
+  const activeRef = useRef(null);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -79,9 +41,13 @@ export default function TimePicker({ value, onChange, label, id }) {
     };
   }, [open]);
 
-  const set = (patch) => {
-    const next = { h12, m: mRounded, period, ...patch };
-    onChange(to24(next.h12, next.m, next.period));
+  useEffect(() => {
+    if (open) activeRef.current?.scrollIntoView({ block: 'center' });
+  }, [open]);
+
+  const pick = (time) => {
+    onChange(time);
+    setOpen(false);
   };
 
   return (
@@ -107,16 +73,31 @@ export default function TimePicker({ value, onChange, label, id }) {
         <div
           role="dialog"
           aria-label={label || 'Pick a time'}
-          className="card absolute left-0 top-[calc(100%+6px)] z-30 w-[188px] animate-fade-up overflow-hidden p-2.5 shadow-paper-lg"
+          className="card absolute left-0 top-[calc(100%+6px)] z-30 w-[148px] animate-fade-up overflow-hidden p-2 shadow-paper-lg"
         >
-          <div className="mb-1.5 flex items-center gap-1.5 px-0.5">
+          <div className="mb-1 flex items-center gap-1.5 px-1">
             <Moon size={11} style={{ color: 'rgb(var(--accent))' }} aria-hidden="true" />
             <span className="muted text-[10px] font-medium uppercase tracking-wide">Pick a time</span>
           </div>
-          <div className="flex gap-1">
-            <Column items={HOURS} active={h12} onPick={(v) => set({ h12: v })} />
-            <Column items={MINUTES} active={mRounded} onPick={(v) => set({ m: v })} pad />
-            <Column items={['AM', 'PM']} active={period} onPick={(v) => set({ period: v })} />
+          <div className="flex max-h-56 flex-col gap-0.5 overflow-y-auto">
+            {TIMES.map((t) => {
+              const isActive = t === value;
+              return (
+                <button
+                  key={t}
+                  ref={isActive ? activeRef : undefined}
+                  type="button"
+                  onClick={() => pick(t)}
+                  className="shrink-0 rounded-lg px-2.5 py-1.5 text-left text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: isActive ? 'rgb(var(--accent-soft))' : 'transparent',
+                    color: isActive ? 'rgb(var(--heading))' : 'rgb(var(--text-muted))',
+                  }}
+                >
+                  {formatTime12h(t)}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
