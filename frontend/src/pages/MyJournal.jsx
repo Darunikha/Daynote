@@ -12,6 +12,13 @@ import journalService from '../services/journalService';
 import { getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { MOODS } from '../utils/moods';
+import Dropdown from '../components/Dropdown';
+
+const MOOD_OPTIONS = [{ value: 'all', label: 'Any mood' }, ...MOODS.map((m) => ({ value: m.value, label: m.label, Icon: m.Icon }))];
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest first' },
+  { value: 'oldest', label: 'Oldest first' },
+];
 
 const TABS = [
   { key: 'all', label: 'All' },
@@ -175,39 +182,8 @@ export default function MyJournal() {
       {showFilters && (
         <div id="journal-filters" className="card animate-fade-up space-y-4 p-5">
           <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="mood-filter" className="label">
-                Mood
-              </label>
-              <select
-                id="mood-filter"
-                value={mood}
-                onChange={(e) => setMood(e.target.value)}
-                className="input"
-              >
-                <option value="all">Any mood</option>
-                {MOODS.map((m) => (
-                  <option key={m.value} value={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="sort-filter" className="label">
-                Sort by
-              </label>
-              <select
-                id="sort-filter"
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="input"
-              >
-                <option value="newest">Newest first</option>
-                <option value="oldest">Oldest first</option>
-              </select>
-            </div>
+            <Dropdown id="mood-filter" label="Mood" value={mood} onChange={setMood} options={MOOD_OPTIONS} />
+            <Dropdown id="sort-filter" label="Sort by" value={sort} onChange={setSort} options={SORT_OPTIONS} />
           </div>
 
           {allTags.length > 0 && (
