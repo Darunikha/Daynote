@@ -19,8 +19,7 @@ import JournalView from './pages/JournalView';
 import CalendarPage from './pages/CalendarPage';
 import MoodTracker from './pages/MoodTracker';
 import SleepLog from './pages/SleepLog';
-import Favorites from './pages/Favorites';
-import MemoryLane from './pages/MemoryLane';
+import Memories from './pages/Memories';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
@@ -85,14 +84,17 @@ export default function App() {
               <Route path="/journal/new" element={<JournalEditor />} />
               <Route path="/journal/:id" element={<JournalView />} />
               <Route path="/journal/:id/edit" element={<JournalEditor />} />
-              <Route path="/memory-lane" element={<MemoryLane />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/mood" element={<MoodTracker />} />
               <Route path="/sleep" element={<SleepLog />} />
-              <Route path="/favorites" element={<Favorites />} />
+              <Route path="/memories" element={<Memories />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
 
+            {/* Memory Lane and Favorites merged into one page with tabs — old
+                links/bookmarks still land somewhere useful. */}
+            <Route path="/memory-lane" element={<Navigate to="/memories" replace />} />
+            <Route path="/favorites" element={<Navigate to="/memories?tab=favorites" replace />} />
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

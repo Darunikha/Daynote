@@ -4,7 +4,6 @@ import {
   BookOpen,
   CalendarDays,
   HeartPulse,
-  Star,
   Settings,
   LogOut,
   PenLine,
@@ -21,11 +20,10 @@ import { useTheme } from '../context/ThemeContext';
 export const NAV_ITEMS = [
   { to: '/dashboard', label: 'Home', icon: Home },
   { to: '/journal', label: 'My Journal', icon: BookOpen },
-  { to: '/memory-lane', label: 'Memory Lane', icon: Sparkles },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/mood', label: 'Mood Tracker', icon: HeartPulse },
   { to: '/sleep', label: 'Sleep Log', icon: Moon },
-  { to: '/favorites', label: 'Favorites', icon: Star },
+  { to: '/memories', label: 'Memories', icon: Sparkles },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
