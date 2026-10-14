@@ -1,5 +1,20 @@
 import { getPageBorder } from '../utils/pageBorders';
 
+// The visible band, as a fraction of the box's own width/height on each
+// axis — matches BORDER_SAFE_FRACTION in JournalPageFrame.jsx, which pads
+// the content in by the same amount. Keep the two in sync: this value is
+// where the art gets clipped, that one is where the text starts, so text
+// padding must be >= this or it sits under still-visible ink.
+export const BORDER_MASK_FRACTION = { x: 0.22, y: 0.37 };
+
+const maskUrl = `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'>` +
+    `<path fill-rule='evenodd' fill='#fff' d='M0,0H100V100H0Z ` +
+    `M${BORDER_MASK_FRACTION.x * 100},${BORDER_MASK_FRACTION.y * 100}` +
+    `H${100 - BORDER_MASK_FRACTION.x * 100}V${100 - BORDER_MASK_FRACTION.y * 100}` +
+    `H${BORDER_MASK_FRACTION.x * 100}Z'/></svg>`
+)}`;
+
 /**
  * A decorative frame around the writing page, drawn from the real
  * hand-drawn ribbon/bow illustration — rendered as ONE complete image,
@@ -15,21 +30,24 @@ import { getPageBorder } from '../utils/pageBorders';
  * the slice point or tile size is tuned — that's what kept reading as
  * "cut" and "stitched together".
  *
- * The actual fix: don't slice it at all. Render the whole image as one
+ * The fix for that: don't slice it at all. Render the whole image as one
  * `<img>`, scaled with `object-fit: fill` to exactly match the page's
- * current box. The page's box isn't a fixed aspect ratio (it grows with
- * how much is written), and these frames are close to square, so some
- * non-uniform scaling happens on a very tall page — but that's a single
- * clean resize of one image, not a composited, repeated pattern, so
- * there is no seam, gap, or cut anywhere: every corner and the ribbon
- * connecting them stays exactly as drawn, just scaled as one piece.
- * `object-fit: contain` was considered and rejected — on a page taller
- * or narrower than the source image, it would leave bare gaps on two
- * sides instead of the frame reaching every edge.
+ * current box. `object-fit: contain` was considered and rejected — on a
+ * page taller or narrower than the source image, it would leave bare
+ * gaps on two sides instead of the frame reaching every edge.
  *
- * The image's own transparent center means the middle of the page stays
- * completely empty regardless of scale, so this never overlaps the
- * title, text, photos or sticky notes.
+ * That alone isn't sufficient, though: these are hand-drawn frames, not
+ * clean rectangular borders, so their ink doesn't stay a fixed distance
+ * from the edge everywhere — e.g. heart-bow's hearts sit partway down
+ * each side, ribbon-wave's bow sits at the bottom-center, reaching much
+ * further in there than a strip near the corners would suggest. Relying
+ * on a guessed padding to dodge wherever each image's ink happens to be
+ * is fragile and was wrong in practice. Instead, `mask-image` clips the
+ * rendered image to a frame-shaped band (the outer BORDER_MASK_FRACTION
+ * of each axis) — a hard, deterministic guarantee that no ink renders
+ * past that boundary, for any of these images, regardless of their
+ * individual layouts. JournalPageFrame pads the content in by the same
+ * fraction, so the two always line up.
  */
 export default function PageBorderFrame({ value }) {
   const meta = getPageBorder(value);
@@ -41,7 +59,15 @@ export default function PageBorderFrame({ value }) {
       alt=""
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
-      style={{ objectFit: 'fill' }}
+      style={{
+        objectFit: 'fill',
+        WebkitMaskImage: `url("${maskUrl}")`,
+        maskImage: `url("${maskUrl}")`,
+        WebkitMaskSize: '100% 100%',
+        maskSize: '100% 100%',
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
+      }}
     />
   );
 }

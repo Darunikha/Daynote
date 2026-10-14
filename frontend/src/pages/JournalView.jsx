@@ -263,14 +263,7 @@ export default function JournalView() {
       {/* The entry itself, styled as a real sheet of paper (see JournalPageFrame). */}
       <JournalPageFrame
         className={`overflow-hidden ${isMinimal ? 'p-6 sm:p-8' : 'p-6 sm:p-10'}`}
-        style={{
-          ...getPaperBackground(entry.paperStyle),
-          // The border art is 84px thick — wider than the page's own
-          // 24–40px padding — so push the content in further whenever
-          // there's one, or it would sit on top of the title and text
-          // instead of framing them.
-          ...(entry.pageBorder && entry.pageBorder !== 'none' ? { padding: '92px 64px' } : null),
-        }}
+        style={getPaperBackground(entry.paperStyle)}
         border={entry.pageBorder}
       >
         <DecorationLayer placements={entry.decorationPlacements} />
