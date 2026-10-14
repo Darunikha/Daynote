@@ -7,23 +7,22 @@ import curvedBow from '../assets/borders/curved-bow.png';
 
 /**
  * Decorative page borders — real hand-drawn ribbon/bow frame artwork
- * (transparent PNGs) around the writing page itself, rendered via CSS
- * `border-image` (see components/PageBorderFrame.jsx) rather than
- * hand-coded SVG. `src` is a Vite-imported asset URL so it gets bundled
- * and hashed correctly in production; `slice` is the border-image-slice
- * percentage tuned per image so each one's corner bows land inside the
- * unstretched corner region instead of being cut or stretched.
+ * (transparent PNGs) around the writing page itself. Each is rendered as
+ * one complete, unsliced image (see components/PageBorderFrame.jsx) —
+ * not tiled or cut into segments, so there's nothing that could show a
+ * seam. `src` is a Vite-imported asset URL so it gets bundled and hashed
+ * correctly in production.
  *
  * Keep the `value` list in sync with backend/models/Journal.js PAGE_BORDERS.
  */
 export const PAGE_BORDERS = [
   { value: 'none', label: 'None / Plain' },
-  { value: 'ribbon-loop', label: 'Ribbon Loop', src: ribbonLoop, slice: 34 },
-  { value: 'ribbon-wave', label: 'Ribbon Wave', src: ribbonWave, slice: 30 },
-  { value: 'heart-bow', label: 'Heart & Bow', src: heartBow, slice: 32 },
-  { value: 'classic-bow', label: 'Classic Bow', src: classicBow, slice: 30 },
-  { value: 'scalloped-bow', label: 'Scalloped Bow', src: scallopedBow, slice: 22 },
-  { value: 'curved-bow', label: 'Curved Bow', src: curvedBow, slice: 28 },
+  { value: 'ribbon-loop', label: 'Ribbon Loop', src: ribbonLoop },
+  { value: 'ribbon-wave', label: 'Ribbon Wave', src: ribbonWave },
+  { value: 'heart-bow', label: 'Heart & Bow', src: heartBow },
+  { value: 'classic-bow', label: 'Classic Bow', src: classicBow },
+  { value: 'scalloped-bow', label: 'Scalloped Bow', src: scallopedBow },
+  { value: 'curved-bow', label: 'Curved Bow', src: curvedBow },
 ];
 
 export const PAGE_BORDER_VALUES = PAGE_BORDERS.map((b) => b.value);

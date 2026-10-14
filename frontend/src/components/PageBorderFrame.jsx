@@ -1,46 +1,47 @@
 import { getPageBorder } from '../utils/pageBorders';
 
 /**
- * A decorative frame around the writing page, drawn from a real hand-drawn
- * ribbon/bow illustration (a transparent PNG) rather than hand-coded SVG.
+ * A decorative frame around the writing page, drawn from the real
+ * hand-drawn ribbon/bow illustration — rendered as ONE complete image,
+ * not tiled, sliced, or repeated in any way.
  *
- * This uses CSS `border-image`, the standard technique for "wrap a decorative
- * image around a box whose size isn't fixed": the source image is sliced
- * into a 3×3 grid at `slice`%, the four corners are drawn at their original
- * size (never stretched, so the bows keep their proportions), and the four
- * edge strips between them repeat as whole tiles (`round`) rather than
- * stretching as one smeared copy — `stretch` looked fine on a roughly
- * square test card but badly warped the detailed ribbon art on the
- * page's actual tall, narrow proportions. `round` never distorts a tile;
- * the tradeoff is that a design with a single accent mid-edge (like one
- * bow at the bottom) may repeat it a few times along a long edge instead
- * of showing it once — in practice this reads as a garland, not a glitch.
- * The image's own transparent center means there's nothing to clip — the
- * middle of the page stays completely empty no matter how the box resizes,
- * so this can never overlap the title, text, photos or sticky notes.
+ * Earlier versions used CSS `border-image` to slice the source into a
+ * 3×3 grid and tile the edge strips between the corners. That's the
+ * standard technique for a decorative border, but it's fundamentally the
+ * wrong tool for THIS art: these images are each a single continuous
+ * hand-drawn frame (the bows and the ribbon between them are one
+ * unbroken line), not a repeatable tile. Slicing it and repeating a
+ * fragment of it necessarily shows a seam at every repeat, no matter how
+ * the slice point or tile size is tuned — that's what kept reading as
+ * "cut" and "stitched together".
  *
- * Width is 84px, not a slimmer value — the source art is ~400–480px per
- * side, and squeezing it into a thin border forces the browser to
- * downscale it hard, which read as smudged/blurry (confirmed by comparing
- * renders at two widths side by side: thinner was visibly softer, not a
- * flaw in the artwork itself). More width gives it room to stay crisp.
+ * The actual fix: don't slice it at all. Render the whole image as one
+ * `<img>`, scaled with `object-fit: fill` to exactly match the page's
+ * current box. The page's box isn't a fixed aspect ratio (it grows with
+ * how much is written), and these frames are close to square, so some
+ * non-uniform scaling happens on a very tall page — but that's a single
+ * clean resize of one image, not a composited, repeated pattern, so
+ * there is no seam, gap, or cut anywhere: every corner and the ribbon
+ * connecting them stays exactly as drawn, just scaled as one piece.
+ * `object-fit: contain` was considered and rejected — on a page taller
+ * or narrower than the source image, it would leave bare gaps on two
+ * sides instead of the frame reaching every edge.
+ *
+ * The image's own transparent center means the middle of the page stays
+ * completely empty regardless of scale, so this never overlaps the
+ * title, text, photos or sticky notes.
  */
 export default function PageBorderFrame({ value }) {
   const meta = getPageBorder(value);
   if (!meta.src) return null;
 
   return (
-    <div
-      className="pointer-events-none absolute inset-0 z-[2]"
+    <img
+      src={meta.src}
+      alt=""
       aria-hidden="true"
-      style={{
-        borderStyle: 'solid',
-        borderWidth: 84,
-        borderImageSource: `url(${meta.src})`,
-        borderImageSlice: `${meta.slice}%`,
-        borderImageWidth: '84px',
-        borderImageRepeat: 'round',
-      }}
+      className="pointer-events-none absolute inset-0 z-[2] h-full w-full"
+      style={{ objectFit: 'fill' }}
     />
   );
 }
