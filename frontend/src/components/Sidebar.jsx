@@ -23,8 +23,7 @@ export const NAV_ITEMS = [
   { to: '/journal', label: 'My Journal', icon: BookOpen },
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/mood', label: 'Mood Tracker', icon: HeartPulse },
-  { to: '/sleep', label: 'Sleep Log', icon: Moon },
-  { to: '/cry', label: 'Cry Log', icon: Droplet },
+  { to: '/log', label: 'Log', icon: Droplet },
   { to: '/memories', label: 'Memories', icon: Sparkles },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];

@@ -18,8 +18,7 @@ import JournalEditor from './pages/JournalEditor';
 import JournalView from './pages/JournalView';
 import CalendarPage from './pages/CalendarPage';
 import MoodTracker from './pages/MoodTracker';
-import SleepLog from './pages/SleepLog';
-import CryLog from './pages/CryLog';
+import Log from './pages/Log';
 import Memories from './pages/Memories';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
@@ -87,16 +86,18 @@ export default function App() {
               <Route path="/journal/:id/edit" element={<JournalEditor />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/mood" element={<MoodTracker />} />
-              <Route path="/sleep" element={<SleepLog />} />
-              <Route path="/cry" element={<CryLog />} />
+              <Route path="/log" element={<Log />} />
               <Route path="/memories" element={<Memories />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
 
-            {/* Memory Lane and Favorites merged into one page with tabs — old
-                links/bookmarks still land somewhere useful. */}
+            {/* Memory Lane and Favorites merged into one page with tabs, and
+                Sleep Log + Cry Log into another — old links/bookmarks still
+                land somewhere useful. */}
             <Route path="/memory-lane" element={<Navigate to="/memories" replace />} />
             <Route path="/favorites" element={<Navigate to="/memories?tab=favorites" replace />} />
+            <Route path="/sleep" element={<Navigate to="/log" replace />} />
+            <Route path="/cry" element={<Navigate to="/log?tab=cry" replace />} />
             <Route path="/home" element={<Navigate to="/dashboard" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
