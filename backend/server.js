@@ -45,6 +45,7 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/journals', require('./routes/journalRoutes'));
 app.use('/api/moods', require('./routes/moodRoutes'));
 app.use('/api/sleep', require('./routes/sleepRoutes'));
+app.use('/api/cry', require('./routes/cryRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 
