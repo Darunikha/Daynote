@@ -11,6 +11,7 @@ import {
   Sun,
   Sparkles,
   Droplet,
+  NotebookTabs,
 } from 'lucide-react';
 import Logo from './Logo';
 import { SprigLeft } from './Botanical';
@@ -24,6 +25,7 @@ export const NAV_ITEMS = [
   { to: '/calendar', label: 'Calendar', icon: CalendarDays },
   { to: '/mood', label: 'Mood Tracker', icon: HeartPulse },
   { to: '/log', label: 'Log', icon: Droplet },
+  { to: '/recap', label: 'Monthly Recap', icon: NotebookTabs },
   { to: '/memories', label: 'Memories', icon: Sparkles },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];

@@ -19,6 +19,7 @@ import JournalView from './pages/JournalView';
 import CalendarPage from './pages/CalendarPage';
 import MoodTracker from './pages/MoodTracker';
 import Log from './pages/Log';
+import Recap from './pages/Recap';
 import Memories from './pages/Memories';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
@@ -87,6 +88,7 @@ export default function App() {
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/mood" element={<MoodTracker />} />
               <Route path="/log" element={<Log />} />
+              <Route path="/recap" element={<Recap />} />
               <Route path="/memories" element={<Memories />} />
               <Route path="/settings" element={<Settings />} />
             </Route>
