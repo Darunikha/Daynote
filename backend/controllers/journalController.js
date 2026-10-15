@@ -190,6 +190,31 @@ const getStats = asyncHandler(async (req, res) => {
   });
 });
 
+// GET /api/journals/heatmap?days=365 -> entry counts per calendar day, for
+// a GitHub-style activity grid. Grouped in Mongo (not fetched and counted in
+// JS) so a year of history is one small aggregation, not a year of entries.
+const getHeatmap = asyncHandler(async (req, res) => {
+  const days = Math.min(Math.max(parseInt(req.query.days, 10) || 365, 1), 730);
+  const since = new Date();
+  since.setHours(0, 0, 0, 0);
+  since.setDate(since.getDate() - (days - 1));
+
+  const rows = await Journal.aggregate([
+    { $match: scoped(req, { date: { $gte: since }, isDraft: { $ne: true } }) },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+        count: { $sum: 1 },
+      },
+    },
+  ]);
+
+  return ok(res, {
+    message: 'Writing activity fetched successfully',
+    data: { days: rows.map((r) => ({ date: r._id, count: r.count })) },
+  });
+});
+
 // GET /api/journals/tags -> distinct tags for filter chips
 const getTags = asyncHandler(async (req, res) => {
   const tags = await Journal.distinct('tags', scoped(req));
@@ -630,6 +655,7 @@ module.exports = {
   unlockJournal,
   removeJournalLock,
   getStats,
+  getHeatmap,
   getTags,
   getOnThisDay,
 };

@@ -10,6 +10,7 @@ const {
   unlockJournal,
   removeJournalLock,
   getStats,
+  getHeatmap,
   getTags,
   getOnThisDay,
 } = require('../controllers/journalController');
@@ -21,6 +22,7 @@ const router = express.Router();
 router.use(protect);
 
 router.get('/stats', getStats);
+router.get('/heatmap', getHeatmap);
 router.get('/tags', getTags);
 router.get('/on-this-day', getOnThisDay);
 

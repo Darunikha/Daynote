@@ -6,6 +6,7 @@ import MemoryLaneCard from '../components/MemoryLaneCard';
 import ConfirmDialog from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import { WeekStrip } from '../components/MoodChart';
+import WritingHeatmap from '../components/WritingHeatmap';
 import { JournalCardSkeleton, SkeletonLines } from '../components/Loading';
 import { TapedNote, Branch } from '../components/Botanical';
 import { useAuth } from '../context/AuthContext';
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const [entries, setEntries] = useState([]);
   const [stats, setStats] = useState(null);
   const [memories, setMemories] = useState([]);
+  const [heatmap, setHeatmap] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -34,14 +36,16 @@ export default function Dashboard() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [list, statsRes, memoryRes] = await Promise.all([
+      const [list, statsRes, memoryRes, heatmapRes] = await Promise.all([
         journalService.list({ limit: 8, sort: 'newest' }),
         journalService.stats(),
         journalService.onThisDay().catch(() => ({ data: { entries: [] } })),
+        journalService.heatmap({ days: 371 }).catch(() => ({ data: { days: [] } })),
       ]);
       setEntries(list.data.entries);
       setStats(statsRes.data);
       setMemories(memoryRes.data?.entries || []);
+      setHeatmap(heatmapRes.data?.days || []);
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -267,6 +271,14 @@ export default function Dashboard() {
           </section>
         </div>
       </div>
+
+      {/* Writing activity */}
+      <section className="card p-5" aria-labelledby="writing-activity">
+        <h2 id="writing-activity" className="mb-4 font-serif text-lg">
+          Your Year in Entries
+        </h2>
+        {loading ? <SkeletonLines lines={3} /> : <WritingHeatmap days={heatmap} />}
+      </section>
 
       <ConfirmDialog
         open={Boolean(pendingDelete)}
