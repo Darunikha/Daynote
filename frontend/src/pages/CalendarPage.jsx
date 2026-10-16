@@ -59,6 +59,18 @@ export default function CalendarPage() {
     [entries, selected]
   );
 
+  const toggleFavorite = async (entry) => {
+    const next = !entry.isFavorite;
+    setEntries((list) => list.map((e) => (e._id === entry._id ? { ...e, isFavorite: next } : e)));
+    try {
+      await journalService.toggleFavorite(entry._id, next);
+      toast.success(next ? 'Added to favourites' : 'Removed from favourites');
+    } catch (err) {
+      setEntries((list) => list.map((e) => (e._id === entry._id ? { ...e, isFavorite: !next } : e)));
+      toast.error(getErrorMessage(err));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
@@ -115,7 +127,7 @@ export default function CalendarPage() {
           ) : (
             <div className="space-y-4">
               {dayEntries.map((entry) => (
-                <JournalCard key={entry._id} entry={entry} showMenu={false} />
+                <JournalCard key={entry._id} entry={entry} showMenu={false} onToggleFavorite={toggleFavorite} />
               ))}
             </div>
           )}

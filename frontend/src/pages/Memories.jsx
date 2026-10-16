@@ -43,6 +43,18 @@ function OnThisDay() {
 
   const displayDateStr = formatLongDate(selectedDate);
 
+  const toggleFavorite = async (entry) => {
+    const next = !entry.isFavorite;
+    setMemories((list) => list.map((e) => (e._id === entry._id ? { ...e, isFavorite: next } : e)));
+    try {
+      await journalService.toggleFavorite(entry._id, next);
+      toast.success(next ? 'Added to favourites' : 'Removed from favourites');
+    } catch (err) {
+      setMemories((list) => list.map((e) => (e._id === entry._id ? { ...e, isFavorite: !next } : e)));
+      toast.error(getErrorMessage(err));
+    }
+  };
+
   return (
     <div className="space-y-5">
       <div
@@ -88,7 +100,7 @@ function OnThisDay() {
                 >
                   {entry.timeAgo || 'Past Memory'}
                 </span>
-                <JournalCard entry={entry} showMenu />
+                <JournalCard entry={entry} showMenu onToggleFavorite={toggleFavorite} />
               </div>
             ))}
           </div>

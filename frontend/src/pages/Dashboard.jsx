@@ -201,7 +201,13 @@ export default function Dashboard() {
                 {loading
                   ? Array.from({ length: 3 }, (_, i) => <JournalCardSkeleton key={i} />)
                   : recent.map((entry) => (
-                      <JournalCard key={entry._id} entry={entry} variant="mini" showMenu={false} />
+                      <JournalCard
+                        key={entry._id}
+                        entry={entry}
+                        variant="mini"
+                        showMenu={false}
+                        onToggleFavorite={toggleFavorite}
+                      />
                     ))}
               </div>
             </section>
