@@ -1,16 +1,20 @@
 import { NavLink } from 'react-router-dom';
-import { Home, BookOpen, PenLine, CalendarDays, Menu } from 'lucide-react';
+import { Home, BookOpen, PenLine, HeartPulse, Menu } from 'lucide-react';
 
 /**
  * Mobile navigation: a compact bottom bar with the most-used destinations plus
  * a prominent "write" button in the middle. The remaining pages live behind
  * the drawer opened by the "More" button.
+ *
+ * Mood Tracker takes Calendar's spot here — checking in on mood is a daily
+ * habit, while the calendar is mostly for looking back at a specific past
+ * date, a less frequent action that's fine one tap deeper in the drawer.
  */
 const ITEMS = [
   { to: '/dashboard', label: 'Home', icon: Home },
   { to: '/journal', label: 'Journal', icon: BookOpen },
   { to: '/journal/new', label: 'Write', icon: PenLine, primary: true },
-  { to: '/calendar', label: 'Calendar', icon: CalendarDays },
+  { to: '/mood', label: 'Mood', icon: HeartPulse },
 ];
 
 export default function MobileNav({ onOpenMenu }) {
