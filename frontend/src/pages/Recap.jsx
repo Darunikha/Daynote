@@ -80,6 +80,22 @@ export default function Recap() {
   const hasAnything = hasMood || hasSleep || hasCry;
   const topMood = moodStats?.topMood ? getMood(moodStats.topMood) : null;
 
+  // One sentence tying the three cards together, instead of leaving them as
+  // three separate stats with nothing connecting them. Each clause only
+  // appears if that section actually has data for the month, so a month
+  // with just mood check-ins still reads as a complete sentence.
+  const summary = [
+    hasMood && `mostly ${topMood.label.toLowerCase()}`,
+    hasSleep && `averaging ${formatDuration(sleepStats.avgMinutes)} of sleep`,
+    hasCry && `${cryStats.countedInRange} ${cryStats.countedInRange === 1 ? 'cry' : 'cries'} logged`,
+  ]
+    .filter(Boolean)
+    .reduce((sentence, clause, i, arr) => {
+      if (i === 0) return clause;
+      const sep = i === arr.length - 1 ? (arr.length > 2 ? ', and ' : ' and ') : ', ';
+      return sentence + sep + clause;
+    }, '');
+
   return (
     <div className="space-y-6">
       <header>
@@ -109,6 +125,14 @@ export default function Recap() {
           <ChevronRight size={16} />
         </button>
       </div>
+
+      {!loading && hasAnything && summary && (
+        <div className="flex justify-center">
+          <TapedNote rotate="-1deg" className="max-w-lg text-center">
+            {MONTH_NAMES[month]}: {summary}.
+          </TapedNote>
+        </div>
+      )}
 
       {loading ? (
         <div className="grid gap-6 lg:grid-cols-3">
@@ -255,14 +279,6 @@ export default function Recap() {
               </>
             )}
           </section>
-        </div>
-      )}
-
-      {!loading && hasAnything && (
-        <div className="flex justify-center">
-          <TapedNote rotate="1.5deg" className="max-w-sm">
-            Every month leaves a trace. This one is yours.
-          </TapedNote>
         </div>
       )}
 
