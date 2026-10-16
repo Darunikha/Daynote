@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Journal = require('../models/Journal');
+const { PAPER_STYLES, PAGE_BORDERS } = require('../models/Journal');
 const { ok, fail, asyncHandler } = require('../utils/response');
 const { shape } = require('./authController');
 
@@ -18,6 +19,18 @@ const updateProfile = asyncHandler(async (req, res) => {
     user.theme = req.body.theme;
   }
   if (req.body.avatarUrl !== undefined) user.avatarUrl = req.body.avatarUrl;
+  if (req.body.defaultPaperStyle !== undefined) {
+    if (!PAPER_STYLES.includes(req.body.defaultPaperStyle)) {
+      return fail(res, 'That paper style is not one we recognise', 400);
+    }
+    user.defaultPaperStyle = req.body.defaultPaperStyle;
+  }
+  if (req.body.defaultPageBorder !== undefined) {
+    if (!PAGE_BORDERS.includes(req.body.defaultPageBorder)) {
+      return fail(res, 'That page border is not one we recognise', 400);
+    }
+    user.defaultPageBorder = req.body.defaultPageBorder;
+  }
 
   await user.save();
   return ok(res, { message: 'Profile updated successfully', data: { user: shape(user) } });

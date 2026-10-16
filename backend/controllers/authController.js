@@ -17,6 +17,8 @@ const shape = (user) => ({
   bio: user.bio,
   avatarUrl: user.avatarUrl,
   theme: user.theme,
+  defaultPaperStyle: user.defaultPaperStyle,
+  defaultPageBorder: user.defaultPageBorder,
   createdAt: user.createdAt,
 });
 

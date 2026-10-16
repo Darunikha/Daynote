@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { PAPER_STYLES, PAGE_BORDERS } = require('./Journal');
 
 const userSchema = new mongoose.Schema(
   {
@@ -27,6 +28,11 @@ const userSchema = new mongoose.Schema(
     bio: { type: String, default: '', maxlength: 160, trim: true },
     avatarUrl: { type: String, default: '' },
     theme: { type: String, enum: ['light', 'dark'], default: 'light' },
+    // Pre-fills a brand-new journal entry's paper/border pickers, so they
+    // aren't picked blind every time — an entry can still change either
+    // away from this per-entry, same as today.
+    defaultPaperStyle: { type: String, enum: PAPER_STYLES, default: 'plain' },
+    defaultPageBorder: { type: String, enum: PAGE_BORDERS, default: 'none' },
     // Forgot-password flow: a hashed, time-limited token. Never the raw
     // token itself, and never returned by default queries.
     resetPasswordToken: { type: String, select: false },

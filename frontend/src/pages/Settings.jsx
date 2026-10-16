@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Palette, ShieldCheck, LogOut, Sun, Moon, Trash2 } from 'lucide-react';
+import { User, Palette, BookOpen, ShieldCheck, LogOut, Sun, Moon, Trash2 } from 'lucide-react';
 import { Spinner } from '../components/Loading';
 import ConfirmDialog from '../components/ConfirmDialog';
+import PaperStylePicker from '../components/PaperStylePicker';
+import PageBorderPicker from '../components/PageBorderPicker';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
@@ -47,6 +49,23 @@ export default function Settings() {
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const [savingDefault, setSavingDefault] = useState('');
+
+  /** Paper style / page border save as soon as you pick one, same as the
+   * pickers already do inside the journal editor — no separate "Save"
+   * button to remember to press for a setting this small. */
+  const saveDefault = async (field, value) => {
+    setSavingDefault(field);
+    try {
+      const res = await userService.updateProfile({ [field]: value });
+      updateUser(res.data.user);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setSavingDefault('');
+    }
+  };
 
   const saveProfile = async (e) => {
     e.preventDefault();
@@ -228,6 +247,34 @@ export default function Settings() {
             );
           })}
         </div>
+      </Section>
+
+      {/* Journal defaults */}
+      <Section
+        icon={BookOpen}
+        title="Journal Defaults"
+        description="What a brand-new entry starts with, so you're not picking blind every time."
+      >
+        <div className="grid gap-6 sm:grid-cols-2">
+          <div>
+            <p className="label !mb-2">Paper style</p>
+            <PaperStylePicker
+              value={user?.defaultPaperStyle || 'plain'}
+              onChange={(v) => saveDefault('defaultPaperStyle', v)}
+            />
+          </div>
+          <div>
+            <p className="label !mb-2">Page border</p>
+            <PageBorderPicker
+              value={user?.defaultPageBorder || 'none'}
+              onChange={(v) => saveDefault('defaultPageBorder', v)}
+            />
+            <p className="muted mt-3 text-xs leading-relaxed">
+              Left as "None / Plain", a new entry gets a different border each day instead.
+            </p>
+          </div>
+        </div>
+        {savingDefault && <p className="muted mt-3 text-xs">Saving…</p>}
       </Section>
 
       {/* Security */}

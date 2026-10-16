@@ -25,6 +25,7 @@ import journalService from '../services/journalService';
 import uploadService from '../services/uploadService';
 import { getErrorMessage } from '../services/api';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 import { toDateInput } from '../utils/format';
 
 const SUGGESTED_TAGS = ['personal', 'work', 'college', 'memories', 'travel', 'ideas'];
@@ -58,16 +59,22 @@ export default function JournalEditor() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { user } = useAuth();
 
   // A new entry can be pre-filled from a date clicked in the calendar. Its
-  // page border is auto-assigned from today's date — a different, but
-  // stable, border per day, never random — and stays fixed once this draft
-  // exists; an edit overwrites it below with whatever the entry was saved
-  // with, so this only ever applies to a brand-new entry.
+  // paper style and page border start from whatever defaults are set in
+  // Settings, rather than always blank/plain — a page border left as
+  // "None" there falls back to the existing per-day rotation (a different,
+  // but stable, border per day, never random) so someone who hasn't set a
+  // preference still gets some variety. Either stays fixed once this draft
+  // exists; an edit overwrites both below with whatever the entry was
+  // saved with, so this only ever applies to a brand-new entry.
   const [form, setForm] = useState(() => ({
     ...EMPTY,
     date: params.get('date') || EMPTY.date,
-    pageBorder: dailyPageBorder(),
+    paperStyle: user?.defaultPaperStyle || EMPTY.paperStyle,
+    pageBorder:
+      user?.defaultPageBorder && user.defaultPageBorder !== 'none' ? user.defaultPageBorder : dailyPageBorder(),
   }));
   const [lockPassword, setLockPassword] = useState('');
   const [isLocked, setIsLocked] = useState(false);
