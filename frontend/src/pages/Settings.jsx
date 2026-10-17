@@ -5,11 +5,13 @@ import { Spinner } from '../components/Loading';
 import ConfirmDialog from '../components/ConfirmDialog';
 import PaperStylePicker from '../components/PaperStylePicker';
 import PageBorderPicker from '../components/PageBorderPicker';
+import JournalPageFrame from '../components/JournalPageFrame';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
 import userService from '../services/userService';
 import { getErrorMessage } from '../services/api';
+import { getPaperBackground } from '../utils/paperStyles';
 import { formatDate } from '../utils/format';
 
 const Section = ({ icon: Icon, title, description, children }) => (
@@ -50,17 +52,26 @@ export default function Settings() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const [defaults, setDefaults] = useState({
+    paperStyle: user?.defaultPaperStyle || 'plain',
+    pageBorder: user?.defaultPageBorder || 'none',
+  });
   const [savingDefault, setSavingDefault] = useState('');
 
   /** Paper style / page border save as soon as you pick one, same as the
    * pickers already do inside the journal editor — no separate "Save"
-   * button to remember to press for a setting this small. */
+   * button to remember to press for a setting this small. Updates the
+   * local preview immediately rather than waiting on the request, so the
+   * mock page below reacts the instant you tap a swatch. */
   const saveDefault = async (field, value) => {
+    const previous = defaults[field];
+    setDefaults((d) => ({ ...d, [field]: value }));
     setSavingDefault(field);
     try {
       const res = await userService.updateProfile({ [field]: value });
       updateUser(res.data.user);
     } catch (err) {
+      setDefaults((d) => ({ ...d, [field]: previous }));
       toast.error(getErrorMessage(err));
     } finally {
       setSavingDefault('');
@@ -255,20 +266,33 @@ export default function Settings() {
         title="Journal Defaults"
         description="What a brand-new entry starts with, so you're not picking blind every time."
       >
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-[1fr_auto_1fr] sm:items-start">
           <div>
             <p className="label !mb-2">Paper style</p>
-            <PaperStylePicker
-              value={user?.defaultPaperStyle || 'plain'}
-              onChange={(v) => saveDefault('defaultPaperStyle', v)}
-            />
+            <PaperStylePicker value={defaults.paperStyle} onChange={(v) => saveDefault('defaultPaperStyle', v)} />
           </div>
+
+          {/* Live preview — a miniature real page, not just two swatches
+              side by side, so you can see the actual combination rather
+              than imagining it until you next open the editor. */}
+          <div className="flex flex-col items-center gap-2 sm:sticky sm:top-4">
+            <p className="label !mb-0">Preview</p>
+            {/* No placeholder text here — at this thumbnail scale even a
+                short line can land right where the border's ink sits (text
+                doesn't shrink along with the box the way the border art
+                does), so the swatch combination speaks for itself instead. */}
+            <div className="w-40">
+              <JournalPageFrame
+                className="aspect-square"
+                style={getPaperBackground(defaults.paperStyle)}
+                border={defaults.pageBorder}
+              />
+            </div>
+          </div>
+
           <div>
             <p className="label !mb-2">Page border</p>
-            <PageBorderPicker
-              value={user?.defaultPageBorder || 'none'}
-              onChange={(v) => saveDefault('defaultPageBorder', v)}
-            />
+            <PageBorderPicker value={defaults.pageBorder} onChange={(v) => saveDefault('defaultPageBorder', v)} />
             <p className="muted mt-3 text-xs leading-relaxed">
               Left as "None / Plain", a new entry gets a different border each day instead.
             </p>
