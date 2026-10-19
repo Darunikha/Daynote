@@ -1,21 +1,22 @@
-require('dotenv').config();
+// Usage (from backend/): node scripts/reset-pw.js <email> <new-password>
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-const NEW_PASSWORD = 'darunikha123';
-const EMAIL = 'sdarunikha@gmail.com';
+const [email, newPassword] = process.argv.slice(2);
+if (!email || !newPassword) {
+  console.error('Usage: node scripts/reset-pw.js <email> <new-password>');
+  process.exit(1);
+}
 
 mongoose.connect(process.env.MONGO_URI).then(async () => {
-  const db = mongoose.connection.db;
-  const hashed = await bcrypt.hash(NEW_PASSWORD, 10);
-  const result = await db.collection('users').updateOne(
-    { email: EMAIL },
+  console.log('Connected to:', mongoose.connection.host);
+  const hashed = await bcrypt.hash(newPassword, 10);
+  const result = await mongoose.connection.db.collection('users').updateOne(
+    { email: email.toLowerCase() },
     { $set: { password: hashed } }
   );
   console.log('Updated:', result.modifiedCount, 'user(s)');
-  console.log('You can now log in with:');
-  console.log('  Email:   ', EMAIL);
-  console.log('  Password:', NEW_PASSWORD);
   process.exit(0);
 }).catch(e => {
   console.error(e.message);
