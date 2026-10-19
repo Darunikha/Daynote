@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 
 const connectDB = require('./config/db');
 const { isCloudinaryConfigured } = require('./config/cloudinary');
@@ -9,6 +10,28 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 const { ok } = require('./utils/response');
 
 const app = express();
+
+// Behind a proxy (Render, Vercel, ...) req.ip is the proxy's unless we trust it.
+if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY) || 1);
+
+// --- Rate limiting ---------------------------------------------------------
+const limitMessage = (message) => ({ success: false, message });
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: limitMessage('Too many requests, please slow down and try again shortly.'),
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: limitMessage('Too many attempts, please try again in a few minutes.'),
+});
 
 // --- Core middleware -------------------------------------------------------
 const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
@@ -41,6 +64,11 @@ app.get('/api/health', (req, res) =>
   })
 );
 
+app.use('/api', apiLimiter);
+app.use(
+  ['/api/auth/register', '/api/auth/login', '/api/auth/forgot-password', '/api/auth/reset-password'],
+  authLimiter
+);
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/journals', require('./routes/journalRoutes'));
 app.use('/api/moods', require('./routes/moodRoutes'));
