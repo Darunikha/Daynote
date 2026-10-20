@@ -22,10 +22,11 @@ can ever read, edit or delete another user's entries.
 6. [MongoDB setup](#mongodb-setup)
 7. [Cloudinary setup (optional)](#cloudinary-setup-optional)
 8. [Running the app](#running-the-app)
-9. [Sample data](#sample-data)
-10. [API overview](#api-overview)
-11. [Deployment](#deployment)
-12. [Accessibility & responsiveness](#accessibility--responsiveness)
+9. [Admin scripts](#admin-scripts)
+10. [Sample data](#sample-data)
+11. [API overview](#api-overview)
+12. [Deployment](#deployment)
+13. [Accessibility & responsiveness](#accessibility--responsiveness)
 
 ---
 
@@ -35,16 +36,29 @@ can ever read, edit or delete another user's entries.
   returned by the API. Routes are protected with JWT on both the client and the server.
 - **Journal CRUD** — write, read, edit and delete entries with a title, content, mood, tags, a date,
   an optional photo, and a favourite flag. Drafts are supported.
+- **Make each page yours** — paper styles, page borders, fonts, layouts, photo frames, heading
+  styles, dividers, plus movable and resizable decorations and sticky notes.
+- **Voice notes** — record audio on an entry, with an optional transcript.
+- **Locks and time capsules** — protect an entry with its own password, or seal it until a date you
+  choose.
 - **Dashboard** — a time-aware greeting, a mood picker that opens the editor pre-filled, today's
-  entry, recent entries, a seven-day mood strip and quick actions.
+  entry, recent entries, a seven-day mood strip, a writing activity heatmap and quick actions.
 - **Search and filters** — debounced search across title, content and tags, plus mood, tag,
   favourite, draft and date filters, sorting and pagination.
 - **Calendar** — month navigation with a soft indicator on days you wrote, and the entries for any
   day you click.
 - **Mood tracker** — a mood-filled calendar, a donut of the month's mood distribution, the mood you
   felt most, and a gentle note about it.
-- **Favourites** — a page for the entries you starred.
-- **Settings** — change your name and bio, change your password, switch theme, delete your account.
+- **Log** — one page for daily Sleep and Cry check-ins, each with its own stats and chart.
+- **Monthly recap** — mood, sleep and cry for the month, tied together with one summary line.
+- **Memories** — one page for Memory Lane (entries from this day in past years) and your
+  Favourites.
+- **Settings** — change your name and bio, change your password, switch theme, set journal defaults
+  (paper style and page border for new entries), delete your account.
+- **Password reset** — a forgot-password flow that emails a reset link, or returns it directly when
+  SMTP isn't configured.
+- **Rate limiting** — the API is capped per IP, with a much stricter limit on login, register and
+  password reset.
 - **Dark mode** — warm dark neutrals rather than an inverted light theme, remembered between visits.
 - **Optional image uploads** — if Cloudinary keys are present the editor offers a photo uploader; if
   they are absent the app works exactly the same, minus that one feature.
@@ -58,7 +72,7 @@ can ever read, edit or delete another user's entries.
 | Layer     | Technology                                                              |
 | --------- | ----------------------------------------------------------------------- |
 | Frontend  | React 18, Vite, JavaScript, Tailwind CSS, React Router, Axios, Lucide    |
-| Backend   | Node.js, Express, JWT, bcryptjs, dotenv, CORS, Multer                    |
+| Backend   | Node.js, Express, JWT, bcryptjs, dotenv, CORS, Multer, express-rate-limit, Nodemailer |
 | Database  | MongoDB with Mongoose (works locally or with MongoDB Atlas)              |
 | Images    | Cloudinary (entirely optional)                                          |
 | Deploy    | Frontend on Vercel, backend on Render or Railway, database on Atlas      |
@@ -73,10 +87,11 @@ Daynote/
 ├── backend/
 │   ├── server.js          # Express app: middleware, routes, error handling
 │   ├── config/            # db.js (Mongoose), cloudinary.js (optional uploads)
-│   ├── controllers/       # auth, journal, user, upload
+│   ├── controllers/       # auth, journal, mood, sleep, cry, user, upload
 │   ├── middleware/        # auth (JWT), errorHandler, upload (Multer)
-│   ├── models/            # User.js, Journal.js
-│   ├── routes/            # authRoutes, journalRoutes, userRoutes, uploadRoutes
+│   ├── models/            # User, Journal, Mood, Sleep, Cry
+│   ├── routes/            # auth, journal, mood, sleep, cry, user, upload
+│   ├── scripts/           # local Mongo helpers, list-users.js, reset-pw.js
 │   ├── utils/             # response helpers, token generation, seed.js
 │   └── .env.example
 └── frontend/
@@ -134,9 +149,11 @@ The API starts on <http://localhost:5000> and the web app on <http://localhost:5
 | `JWT_SECRET`            | **yes**  | A long random string used to sign tokens.                          |
 | `JWT_EXPIRES_IN`        | no       | Token lifetime. Defaults to `7d`.                                  |
 | `CLIENT_URL`            | no       | Allowed CORS origin(s), comma separated. Defaults to the Vite port. |
+| `TRUST_PROXY`           | no       | Set to `1` behind a proxy (Render, Railway) so rate limiting sees real client IPs. |
 | `CLOUDINARY_CLOUD_NAME` | no       | Leave blank to run without image uploads.                          |
 | `CLOUDINARY_API_KEY`    | no       | Leave blank to run without image uploads.                          |
 | `CLOUDINARY_API_SECRET` | no       | Leave blank to run without image uploads.                          |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` | no | Leave blank and forgot-password returns the reset link in the API response instead of emailing it. |
 
 A good `JWT_SECRET` can be generated with:
 
@@ -239,6 +256,18 @@ Check the API is healthy at <http://localhost:5000/api/health>.
 
 ---
 
+## Admin scripts
+
+Run these from `backend/`. They talk straight to the database in `MONGO_URI`, so check which one
+that is before you run them.
+
+```bash
+node scripts/list-users.js                       # list every account
+node scripts/reset-pw.js <email> <new-password>  # set a new password for one account
+```
+
+---
+
 ## Sample data
 
 `npm run seed` creates **development/demo data only** — one demo account plus a month of realistic
@@ -270,7 +299,8 @@ Error:
 { "success": false, "message": "Something went wrong" }
 ```
 
-Protected endpoints expect an `Authorization: Bearer <token>` header.
+Protected endpoints expect an `Authorization: Bearer <token>` header. The API is rate limited per
+IP; going over the limit returns `429` in the same error shape.
 
 ### Auth
 
@@ -279,6 +309,8 @@ Protected endpoints expect an `Authorization: Bearer <token>` header.
 | POST   | `/api/auth/register` | no   | Create an account, returns a JWT        |
 | POST   | `/api/auth/login`    | no   | Sign in, returns a JWT                  |
 | GET    | `/api/auth/me`       | yes  | The signed-in user                      |
+| POST   | `/api/auth/forgot-password`      | no | Email a reset link (or return it without SMTP) |
+| POST   | `/api/auth/reset-password/:token` | no | Set a new password from a reset link   |
 
 ### Journals
 
@@ -292,6 +324,11 @@ Protected endpoints expect an `Authorization: Bearer <token>` header.
 | PATCH  | `/api/journals/:id/favorite`  | Toggle or set the favourite flag     |
 | GET    | `/api/journals/stats`         | Mood distribution and totals         |
 | GET    | `/api/journals/tags`          | Every tag the user has used          |
+| GET    | `/api/journals/heatmap`       | Writing activity per day             |
+| GET    | `/api/journals/on-this-day`   | Entries from this date in past years |
+| POST   | `/api/journals/:id/lock`      | Lock an entry with a password        |
+| POST   | `/api/journals/:id/unlock`    | Unlock a locked entry                |
+| POST   | `/api/journals/:id/remove-lock` | Remove an entry's lock             |
 
 Supported query parameters on `GET /api/journals`:
 
@@ -314,20 +351,40 @@ Supported query parameters on `GET /api/journals`:
 | PUT    | `/api/users/password` | Change the password (verifies the old one)   |
 | DELETE | `/api/users/me`       | Delete the account and all of its entries    |
 
+### Mood, Sleep and Cry check-ins
+
+Each of `/api/moods`, `/api/sleep` and `/api/cry` has the same core shape:
+
+| Method | Endpoint          | Description                              |
+| ------ | ----------------- | ---------------------------------------- |
+| GET    | `/api/<x>`        | List check-ins                           |
+| POST   | `/api/<x>`        | Add or update a check-in                 |
+| GET    | `/api/<x>/today`  | Today's check-in                         |
+| GET    | `/api/<x>/stats`  | Totals and trends                        |
+| DELETE | `/api/<x>/:id`    | Delete a check-in                        |
+
+`/api/moods/:id` also accepts `PATCH` to edit a mood check-in.
+
 ### Upload
 
 | Method | Endpoint              | Description                                       |
 | ------ | --------------------- | ------------------------------------------------- |
 | GET    | `/api/upload/status`  | Whether image upload is configured                |
 | POST   | `/api/upload`         | Upload one image (multipart field name `image`)   |
+| POST   | `/api/upload/audio`   | Upload one audio clip (multipart field name `audio`) |
 
 ### Data models
 
 **User** — `_id`, `name`, `email` (unique), `password` (hashed, never returned), `bio`, `avatarUrl`,
-`theme`, `createdAt`, `updatedAt`.
+`theme`, `defaultPaperStyle`, `defaultPageBorder`, `createdAt`, `updatedAt`.
 
 **Journal** — `_id`, `userId`, `title`, `content`, `mood`, `tags[]`, `date`, `isFavorite`,
-`isDraft`, `imageUrl`, `createdAt`, `updatedAt`.
+`isDraft`, `isLocked`, `isTimeCapsule` / `unlockDate`, `imageUrl`, `audioUrl`, `audioTranscript`,
+page styling (`paperStyle`, `pageBorder`, `font`, `layout`, `decorations`, `stickyNotes`, …),
+`createdAt`, `updatedAt`.
+
+**Mood**, **Sleep** and **Cry** — per-user daily check-ins: a mood and note; bed time, wake time and
+quality; or cry intensity, trigger and how you felt afterwards.
 
 Every journal query is scoped to `userId` from the verified token, so a user can only ever reach
 their own entries. Requesting someone else's entry returns a 404.
