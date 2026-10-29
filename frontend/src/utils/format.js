@@ -88,3 +88,20 @@ export const monthGrid = (year, month) => {
 
 export const isSameDay = (a, b) =>
   a && b && new Date(a).toDateString() === new Date(b).toDateString();
+
+/**
+ * Consecutive days written, from the heatmap's `[{ date: 'YYYY-MM-DD', count }]`.
+ * Today not being written yet doesn't break the streak — it only ends once a
+ * whole day has passed with nothing written.
+ */
+export const writingStreak = (days = []) => {
+  const written = new Set(days.filter((d) => d.count > 0).map((d) => d.date));
+  const cursor = new Date();
+  if (!written.has(toDateInput(cursor))) cursor.setDate(cursor.getDate() - 1);
+  let streak = 0;
+  while (written.has(toDateInput(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+};

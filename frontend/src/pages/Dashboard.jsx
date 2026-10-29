@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { PenLine, CalendarDays, HeartPulse, ArrowRight, Star } from 'lucide-react';
+import { PenLine, CalendarDays, HeartPulse, ArrowRight, Star, Flame } from 'lucide-react';
 import JournalCard from '../components/JournalCard';
 import MemoryLaneCard from '../components/MemoryLaneCard';
 import ConfirmDialog from '../components/ConfirmDialog';
@@ -13,7 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import journalService from '../services/journalService';
 import { getErrorMessage } from '../services/api';
-import { greeting, firstName, isSameDay } from '../utils/format';
+import { greeting, firstName, isSameDay, writingStreak } from '../utils/format';
 
 const QUICK_ACTIONS = [
   { to: '/journal/new', label: 'New Entry', icon: PenLine, variant: 'primary' },
@@ -29,6 +29,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [memories, setMemories] = useState([]);
   const [heatmap, setHeatmap] = useState([]);
+  const streak = useMemo(() => writingStreak(heatmap), [heatmap]);
   const [loading, setLoading] = useState(true);
   const [pendingDelete, setPendingDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -280,9 +281,20 @@ export default function Dashboard() {
 
       {/* Writing activity */}
       <section className="card p-5" aria-labelledby="writing-activity">
-        <h2 id="writing-activity" className="mb-4 font-serif text-lg">
-          Your Year in Entries
-        </h2>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h2 id="writing-activity" className="font-serif text-lg">
+            Your Year in Entries
+          </h2>
+          {!loading && streak > 0 && (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm"
+              style={{ backgroundColor: 'rgb(var(--accent) / 0.12)', color: 'rgb(var(--accent))' }}
+            >
+              <Flame size={14} aria-hidden="true" />
+              {streak} day streak
+            </span>
+          )}
+        </div>
         {loading ? <SkeletonLines lines={3} /> : <WritingHeatmap days={heatmap} />}
       </section>
 
