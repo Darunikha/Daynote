@@ -52,6 +52,32 @@ const EMPTY = {
   audioTranscript: '',
 };
 
+const DRAFT_KEY_PREFIX = 'daynote:editor-draft:';
+
+// Every storage call is wrapped: localStorage can be full, blocked or missing
+// (private windows), and losing the backup must never break writing itself.
+const readBackup = (key) => {
+  try {
+    return JSON.parse(localStorage.getItem(key) || 'null');
+  } catch {
+    return null;
+  }
+};
+const writeBackup = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* ignore */
+  }
+};
+const clearBackup = (key) => {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+};
+
 /** Create and edit share this page: an /:id param switches it to edit mode. */
 export default function JournalEditor() {
   const { id } = useParams();
@@ -92,6 +118,12 @@ export default function JournalEditor() {
 
   const fileRef = useRef(null);
   const contentRef = useRef(null);
+
+  // A local backup of the form, so a closed tab or dropped connection doesn't
+  // lose what was typed. Kept per user and per entry (or "new"). The voice
+  // note (a large base64 string) and the lock password are never backed up.
+  const backupKey = `${DRAFT_KEY_PREFIX}${user?._id || 'anon'}:${id || 'new'}`;
+  const [restorable, setRestorable] = useState(null);
 
   // JSON snapshot of the form as last loaded/saved; anything different is unsaved work.
   const baselineRef = useRef(isEdit ? null : JSON.stringify(form));
@@ -172,6 +204,45 @@ export default function JournalEditor() {
     baselineRef.current !== null &&
     (JSON.stringify(form) !== baselineRef.current || lockPassword !== '');
 
+  // Once the entry has loaded, offer to restore a backup that differs from it.
+  useEffect(() => {
+    if (loading || baselineRef.current === null) return;
+    const backup = readBackup(backupKey);
+    if (!backup?.form) return;
+    const { audioUrl, ...rest } = JSON.parse(baselineRef.current);
+    if (JSON.stringify(rest) === JSON.stringify(backup.form)) {
+      clearBackup(backupKey);
+      return;
+    }
+    setRestorable(backup);
+  }, [loading, backupKey]);
+
+  // Save a backup shortly after each change; drop it once the form matches
+  // what's saved again. Skipped while the restore offer is still showing so
+  // it can't overwrite the backup before it's been looked at.
+  useEffect(() => {
+    if (loading || restorable || baselineRef.current === null) return undefined;
+    const timer = setTimeout(() => {
+      if (!dirtyRef.current) {
+        clearBackup(backupKey);
+        return;
+      }
+      const { audioUrl, ...rest } = form;
+      writeBackup(backupKey, { form: rest, savedAt: Date.now() });
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [form, loading, restorable, backupKey]);
+
+  const restoreBackup = () => {
+    setForm((f) => ({ ...f, ...restorable.form }));
+    setRestorable(null);
+  };
+
+  const discardBackup = () => {
+    clearBackup(backupKey);
+    setRestorable(null);
+  };
+
   // Warn before a refresh or tab close throws away unsaved writing.
   useEffect(() => {
     const onBeforeUnload = (e) => {
@@ -198,6 +269,7 @@ export default function JournalEditor() {
     if (dirtyRef.current && !window.confirm('You have unsaved changes. Leave without saving?')) {
       return;
     }
+    clearBackup(backupKey);
     navigate(-1);
   };
 
@@ -258,6 +330,7 @@ export default function JournalEditor() {
         : await journalService.create(payload);
       toast.success(res.message);
       dirtyRef.current = false;
+      clearBackup(backupKey);
       navigate(`/journal/${res.data.entry._id}`, { replace: true });
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -333,6 +406,33 @@ export default function JournalEditor() {
 
   return (
     <div className="space-y-6">
+      {restorable && (
+        <div
+          role="status"
+          className="card flex flex-wrap items-center justify-between gap-3 p-4 text-sm"
+          style={{ backgroundColor: 'rgb(var(--accent-soft))' }}
+        >
+          <span>
+            We found unsaved writing from{' '}
+            {new Date(restorable.savedAt).toLocaleString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              hour: 'numeric',
+              minute: '2-digit',
+            })}
+            . Want it back?
+          </span>
+          <span className="flex gap-2">
+            <button type="button" onClick={restoreBackup} className="btn btn-primary">
+              Restore
+            </button>
+            <button type="button" onClick={discardBackup} className="btn btn-ghost">
+              Discard
+            </button>
+          </span>
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
